@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>또간집 풍맵 (Final Complete Edition)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* 모바일 전체 화면 최적화 */
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #2c3e50; font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+        #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; width: 100%; height: 100%; }
+        
+        /* 상단 플로팅 헤더 디자인 */
+        #header { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 9999; background: rgba(255, 204, 0, 0.95); padding: 12px 24px; border-radius: 50px; font-size: 17px; font-weight: 900; white-space: nowrap; box-shadow: 0 4px 15px rgba(0,0,0,0.3); color: #1a1a1a; letter-spacing: -0.5px; border: 2px solid #fff; }
+        
+        /* 팝업창(말풍선) 커스텀 디자인 */
+        .leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); border: 1px solid #ddd; padding: 0; overflow: hidden; }
+        .leaflet-popup-content { margin: 0; }
+        .popup-header { background: #d32f2f; color: white; padding: 12px 15px; font-size: 16px; font-weight: bold; border-top-left-radius: 11px; border-top-right-radius: 11px; }
+        .popup-body { padding: 15px; font-size: 14px; line-height: 1.6; color: #333; background: #fff; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 12px; margin-bottom: 8px; }
+        .badge-winner { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+        .badge-runner { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+        .comment { margin-top: 8px; color: #555; padding: 8px; background: #f8f9fa; border-radius: 8px; border-left: 3px solid #ffcc00; }
+        
+        /* 커스텀 마커 아이콘 */
+        .marker-icon { font-size: 26px; text-shadow: 2px 2px 5px rgba(0,0,0,0.4); text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="header">🗺️ 풍맵</div>
+<div id="map"></div>
+
+<script>
+    // 1. 전국 지도가 한눈에 들어오는 최적의 시야 세팅
+    var map = L.map('map', {zoomControl: false}).setView([36.2, 127.8], 7);
+    
+    // 타일 로드 (오픈스트리트맵)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; 풍맵 by AI'
+    }).addTo(map);
+
+    // 2. 빠진 회차 없이 모두 채워넣은 [최종 완성형 데이터베이스]
+    var data = [
+        // --- [서울 특별시 (최신 업데이트 포함)] ---
+        { n: "뉴오더클럽", loc: "연남동", lat: 37.5611, lng: 126.9248, s: "🏆 삐라", c: "연남동 피자 맛집 종결" },
+        { n: "라도집", loc: "한남동", lat: 37.5367, lng: 127.0097, s: "🏆 삐라", c: "닭도리탕 백반, 반찬이 미쳤음" },
+        { n: "3시 50분 순대", loc: "광장시장", lat: 37.5701, lng: 126.9995, s: "🏆 삐라", c: "오후 3시 50분에만 나타나는 전설" },
+        { n: "성수부두", loc: "성수동", lat: 37.5445, lng: 127.0560, s: "🏆 삐라", c: "조개찜과 칼국수, 방송 거절하던 집" },
+        { n: "유야케도쿄", loc: "신촌", lat: 37.5582, lng: 126.9405, s: "🏆 삐라", c: "백김치가 들어간 독특한 치즈돈가스" },
+        { n: "오복순대국", loc: "문래동", lat: 37.5152, lng: 126.8950, s: "🏆 삐라", c: "순댓국 정식, 오픈 2시간 만에 수육 완판" },
+        { n: "떡도리탕", loc: "강남", lat: 37.5005, lng: 127.0275, s: "🏆 삐라", c: "강남 한복판에서 이 가격? 감자가 미침" },
+        { n: "토리카미", loc: "을지로", lat: 37.5651, lng: 126.9928, s: "🏆 삐라", c: "닭 모듬구이, 숯불향과 육즙 폭발" },
+        { n: "자코비버거", loc: "이태원", lat: 37.5408, lng: 126.9868, s: "🏆 삐라", c: "내장파괴버거, 수제버거의 근본" },
+        { n: "카미야", loc: "홍대", lat: 37.5528, lng: 126.9220, s: "🏆 삐라", c: "오코노미소스동, 홍대생 영혼의 맛집" },
+        { n: "섬집", loc: "용산", lat: 37.5285, lng: 126.9638, s: "🏆 삐라", c: "육전, 김치찜, 밥 네 공기 가능한 찐맛집" },
+        { n: "더빛남", loc: "잠실", lat: 37.5042, lng: 127.1064, s: "🏆 삐라", c: "잠실 주민들만 몰래 가는 로컬 쌀국수" },
+        { n: "가양칼국수", loc: "여의도", lat: 37.5205, lng: 126.9304, s: "🏆 삐라", c: "버섯과 미나리 무한리필 샤브샤브" },
+        { n: "이유식당", loc: "대학로", lat: 37.5830, lng: 126.9990, s: "🏆 삐라", c: "연극보다 폼 미친 대학로 찐맛집" },
+        { n: "대흥양다리바베큐", loc: "건대", lat: 37.5405, lng: 127.0675, s: "🏆 삐라", c: "압도적 비주얼의 양다리 구이" },
+        { n: "담택", loc: "합정", lat: 37.5520, lng: 126.9110, s: "🏆 삐라", c: "방시혁도 더블체크한 합정 찐맛집" },
+        { n: "무한자금성", loc: "구디단", lat: 37.4830, lng: 126.8970, s: "🏆 삐라", c: "구로 직장인 살릴 가성비 중식 뷔페" },
+        { n: "대련집", loc: "종로", lat: 37.5680, lng: 126.9890, s: "🏆 삐라", c: "2023년 종결. 사골칼국수와 보쌈" },
+        { n: "한양양곱창", loc: "왕십리", lat: 37.5615, lng: 127.0350, s: "🏆 삐라", c: "곱창하면 이젠 무조건 왕십리" },
+        { n: "란주칼면", loc: "명동", lat: 37.5610, lng: 126.9830, s: "🏆 삐라", c: "명동 역대급 1등 맛집. 도삭면의 쫄깃함" },
+        { n: "버섯집", loc: "서울숲", lat: 37.5450, lng: 127.0420, s: "🏆 삐라", c: "풍자가 말아주는 서울숲 찐맛집 코스" },
+        { n: "논고을", loc: "사당", lat: 37.4760, lng: 126.9810, s: "🏆 삐라", c: "앞으로 약속은 무조건 사당이다" },
+        { n: "맘맘테이블", loc: "신촌", lat: 37.5585, lng: 126.9388, s: "💬 또간집", c: "가성비 내리는 똠양쌀국수와 분짜" },
+
+        // --- [경기도 / 인천 / 충청도] ---
+        { n: "정철 황소곱창", loc: "수원", lat: 37.2486, lng: 127.0425, s: "🏆 삐라", c: "수원 곱창구이의 전설, 얼큰라면 필수" },
+        { n: "남동어시장", loc: "인천", lat: 37.4526, lng: 126.7022, s: "🏆 삐라", c: "풍자도 몰랐던 로컬 모듬숙성회 찐맛집" },
+        { n: "산사랑", loc: "용인", lat: 37.3500, lng: 127.0450, s: "🏆 삐라", c: "풍자 울려버린 용인 근본 한정식 맛집" },
+        { n: "돈까스갤러리", loc: "의정부", lat: 37.7380, lng: 127.0450, s: "🏆 삐라", c: "부대찌개 성지에서 찾은 돈까스 로컬맛집" },
+        { n: "돌판하나", loc: "분당", lat: 37.3820, lng: 127.1180, s: "🏆 삐라", c: "풍자 눈 뒤집어지게 만든 분당 최고 명당" },
+        { n: "와타요업", loc: "대전", lat: 36.3375, lng: 127.3940, s: "🏆 삐라", c: "텐동 튀김 퀄리티 미침, 대전은 맛잼 도시!" },
+        { n: "봉용불고기", loc: "청주", lat: 36.6500, lng: 127.4850, s: "🏆 삐라", c: "파절이와 냉삼을 은박지에 볶아먹는 찐로컬" },
+        { n: "이씨식당", loc: "충주", lat: 36.9910, lng: 127.9250, s: "🏆 삐라", c: "충주맨도 인정한 전국구 찐맛집" },
+
+        // --- [강원도 / 전라도] ---
+        { n: "송정희어머니손두부", loc: "속초", lat: 38.2045, lng: 128.5395, s: "🏆 삐라", c: "혹한기 칼바람 뚫고 찾아낸 해물순두부" },
+        { n: "학곡리막국수닭갈비", loc: "춘천", lat: 37.8500, lng: 127.7500, s: "🏆 삐라", c: "춘천시민 만장일치 1등 닭갈비" },
+        { n: "상운메밀촌", loc: "양양", lat: 38.0300, lng: 128.6600, s: "🏆 삐라", c: "여름 핫플 양양에서 찾은 맛집 풀코스" },
+        { n: "장안회집", loc: "강릉", lat: 37.8300, lng: 128.8700, s: "🏆 삐라", c: "강릉 바다 다 뒤져서 찾은 물회의 제왕" },
+        { n: "25시참숯구이", loc: "광주", lat: 35.1950, lng: 126.8410, s: "🏆 삐라", c: "오돌뼈 구이 신세계, 잔치국수 필수" },
+        { n: "선경준치횟집", loc: "목포", lat: 34.7865, lng: 126.3768, s: "🏆 삐라", c: "목포 현지인들의 준치 회무침 성지" },
+        { n: "길거리야", loc: "전주", lat: 35.8145, lng: 127.1500, s: "🏆 삐라", c: "전주 한옥마을 오면 무조건 먹어야 하는 바게트버거" },
+        { n: "소라편의점식당", loc: "순천", lat: 34.9500, lng: 127.4870, s: "🏆 삐라", c: "순천 로컬들만 아는 진정한 히든 맛집" },
+
+        // --- [경상도 / 제주도] ---
+        { n: "왕거미식당", loc: "대구", lat: 35.8679, lng: 128.6045, s: "🏆 삐라", c: "오드레기 불향 대박, 뭉티기는 예술" },
+        { n: "세정", loc: "부산", lat: 35.1015, lng: 129.0265, s: "🏆 삐라", c: "부산 토박이들의 한치모밀쟁반" },
+        { n: "밀양집", loc: "부산", lat: 35.1010, lng: 129.0280, s: "🏆 삐라", c: "부산 1등 국밥 최강전 우승, 돼지국밥 종결" },
+        { n: "빼돌린뒷고기", loc: "경주", lat: 35.8450, lng: 129.2100, s: "🏆 삐라", c: "경주에서 발굴해 낸 역대급 모듬 뒷고기" },
+        { n: "새포항물회", loc: "포항", lat: 36.0350, lng: 129.3650, s: "🏆 삐라", c: "포항 전통 고추장 물회" },
+        { n: "인천식당", loc: "포항", lat: 36.0300, lng: 129.3660, s: "🏆 삐라", c: "과메기 도시 포항에서 의외로 제일 맛있는 맛집" },
+        { n: "함경면옥", loc: "울산", lat: 35.5390, lng: 129.3110, s: "🏆 삐라", c: "GDP 1등 도시 울산에서 찾은 1등 맛집" },
+        { n: "신해바라기", loc: "제주시", lat: 33.5126, lng: 126.5233, s: "🏆 삐라", c: "제주도민들만 아는 찐로컬 순두부찌개" },
+        { n: "희신이네", loc: "서귀포", lat: 33.2500, lng: 126.5650, s: "🏆 삐라", c: "제주도민도 오픈런하는 닭고기 냉밀면" }
+    ];
+
+    // 3. 지도에 데이터 뿌리기 (마커 및 팝업 적용)
+    data.forEach(p => {
+        var isWinner = p.s.includes("삐라");
+        var emoji = isWinner ? "🏆" : "💬";
+        var badgeClass = isWinner ? "badge-winner" : "badge-runner";
+        
+        var customIcon = L.divIcon({
+            className: 'marker-icon',
+            html: emoji,
+            iconSize: [36, 36],
+            iconAnchor: [18, 36],
+            popupAnchor: [0, -36]
+        });
+
+        var popupHtml = `
+            <div class='popup-header'>[${p.loc}] ${p.n}</div>
+            <div class='popup-body'>
+                <div class='badge ${badgeClass}'>${p.s}</div>
+                <div class='comment'>"${p.c}"</div>
+            </div>
+        `;
+
+        L.marker([p.lat, p.lng], {icon: customIcon})
+         .addTo(map)
+         .bindPopup(popupHtml, { maxWidth: 280, minWidth: 220 });
+    });
+    
+    // 모바일 브라우저 렌더링 버그(지도 짤림 현상) 방지
+    setTimeout(function(){ map.invalidateSize(); }, 300);
+</script>
+
+</body>
+</html>
