@@ -149,15 +149,15 @@
             </div>
 
             <div class="card">
-                <div class="card-header"><i class="fa-solid fa-cloud-sun"></i> 오늘의 날씨</div>
+                <div class="card-header"><i class="fa-solid fa-cloud-sun"></i> 오늘의 날씨 (부산)</div>
                 <div class="weather-info">
                     <div class="weather-main">
-                        <div class="weather-desc">현재 날씨</div>
+                        <div class="weather-desc">현재 날씨 (비)</div>
                         <div class="weather-icon">🌧️</div>
                         <div class="temp">23°C</div>
                     </div>
                     <div class="weather-main">
-                        <div class="weather-desc">오후 예상</div>
+                        <div class="weather-desc">오후 예상 (흐림)</div>
                         <div class="weather-icon">☁️</div>
                         <div class="temp">23°/ 20°</div>
                     </div>
@@ -177,7 +177,7 @@
     </div>
 
     <script>
-        // 1. 실시간 시계 및 날짜 업데이트 (디바이스 시간 기준)
+        // 1. 실시간 시계 및 날짜 업데이트
         function updateTime() {
             const now = new Date();
             const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -195,29 +195,29 @@
         setInterval(updateTime, 1000);
         updateTime();
 
-        // 2. 대시보드 목업 데이터 (추후 API 연동 시 이 객체들을 업데이트하면 됩니다)
+        // 2. 대시보드 2026년 6월 22일 최신 업데이트 데이터
         const marketData = [
-            { label: '코스피', value: '2,812.50', change: '+0.69%', status: 'up' },
-            { label: '코스닥', value: '870.40', change: '+0.19%', status: 'up' },
-            { label: '다우존스', value: '39,150.33', change: '+0.04%', status: 'up' },
-            { label: 'S&P 500', value: '5,464.62', change: '-0.16%', status: 'down' },
-            { label: '나스닥', value: '17,689.36', change: '-0.18%', status: 'down' }
+            { label: '코스피', value: '9,114.55', change: '+0.69%', status: 'up' },
+            { label: '코스닥', value: '968.40', change: '+0.19%', status: 'up' },
+            { label: '다우존스', value: '51,564.71', change: '+0.71%', status: 'up' },
+            { label: 'S&P 500', value: '7,500.57', change: '+0.93%', status: 'up' },
+            { label: '나스닥', value: '26,517.93', change: '+2.43%', status: 'up' }
         ];
 
-        // ISDRAM: iSelect Global DRAM Semiconductor Index
         const exchangeData = [
-            { label: '원/달러', value: '1,388.50 원', change: '-1.50', status: 'down' },
-            { label: '원/엔 (100엔)', value: '869.45 원', change: '+2.10', status: 'up' },
-            { label: '원/위안', value: '191.22 원', change: '-0.30', status: 'down' },
-            { label: 'ISDRAM 지수', value: '1,425.80', change: '+2.45%', status: 'up' } 
+            { label: '원/달러', value: '1,537.00 원', change: '+10.0원', status: 'up' },
+            { label: '원/엔 (100엔)', value: '951.93 원', change: '-', status: '' },
+            { label: '원/위안', value: '226.63 원', change: '-', status: '' },
+            { label: 'ISDRAM 지수 (임시)', value: '1,425.80', change: '+2.45%', status: 'up' } 
         ];
 
         const newsData = [
-            '미 증시, AI 랠리 피로감에 혼조세 마감',
-            '올해 첫 수도권 폭염특보 발효, 밤부터는 전국 장맛비 예상',
-            'D램 현물가 상승세 지속... 글로벌 ISDRAM 지수 연중 최고치 경신'
+            '미-이란 대표단, 스위스에서 불안한 협상 시작',
+            '수도권 올해 첫 폭염특보, 밤부터 전국 많은 비',
+            '서울 7호선 청라 연장선, 지반 침하로 연기'
         ];
 
+        // 캘린더 접근 불가로 임의 할 일 유지
         const todoData = [
             '오전 10:00 - 주간 업무 보고 회의 참석',
             '오후 02:00 - 신규 프로젝트 킥오프 미팅',
