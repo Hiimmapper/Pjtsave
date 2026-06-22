@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인용 일일 대시보드</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS 변수 설정 */
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --accent: #3b82f6;
+            --up-color: #ef4444; /* 한국 기준 상승(빨강) */
+            --down-color: #3b82f6; /* 한국 기준 하락(파랑) */
+            --border-radius: 20px;
+        }
+        
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 0 10px;
+        }
+        
+        h1 { 
+            margin: 0; 
+            font-size: 28px; 
+            font-weight: 700; 
+            letter-spacing: -0.5px;
+        }
+        
+        .time-display {
+            text-align: right;
+        }
+        .time-display #date { font-size: 15px; color: var(--text-muted); font-weight: 500; }
+        .time-display #time { font-size: 28px; font-weight: 800; color: var(--text-main); letter-spacing: 1px; }
+        
+        /* 그리드 레이아웃 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025);
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+        }
+        
+        .card-header i {
+            color: var(--accent);
+        }
+        
+        /* 리스트형 데이터 (증시, 환율 등) */
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .data-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .data-label { font-weight: 600; color: var(--text-muted); font-size: 15px; }
+        .data-value { font-weight: 700; text-align: right; font-size: 16px; }
+        .up { color: var(--up-color); }
+        .down { color: var(--down-color); }
+        
+        /* 날씨 섹션 */
+        .weather-info {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+        .weather-main { text-align: center; }
+        .weather-icon { font-size: 50px; margin-bottom: 12px; }
+        .temp { font-size: 28px; font-weight: 800; }
+        .weather-desc { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        
+        /* 뉴스 및 할일 섹션 */
+        .list-item {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 15px;
+            line-height: 1.5;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .list-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .list-icon { margin-top: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>오늘의 대시보드 🚀</h1>
+            <div class="time-display">
+                <div id="date">로딩 중...</div>
+                <div id="time">--:--:--</div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-header"><i class="fa-solid fa-chart-line"></i> 종합주가지수</div>
+                <div id="market-data"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="fa-solid fa-coins"></i> 환율 및 ISDRAM 지표</div>
+                <div id="exchange-data"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="fa-solid fa-cloud-sun"></i> 오늘의 날씨</div>
+                <div class="weather-info">
+                    <div class="weather-main">
+                        <div class="weather-desc">현재 날씨</div>
+                        <div class="weather-icon">🌧️</div>
+                        <div class="temp">23°C</div>
+                    </div>
+                    <div class="weather-main">
+                        <div class="weather-desc">오후 예상</div>
+                        <div class="weather-icon">☁️</div>
+                        <div class="temp">23°/ 20°</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="fa-regular fa-newspaper"></i> 주요 뉴스 (Top 3)</div>
+                <div id="news-data"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="fa-regular fa-calendar-check"></i> 오늘의 할 일</div>
+                <div id="todo-data"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 실시간 시계 및 날짜 업데이트 (디바이스 시간 기준)
+        function updateTime() {
+            const now = new Date();
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            
+            const dateStr = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? '오후' : '오전';
+            hours = hours % 12 || 12;
+            const timeStr = `${ampm} ${hours}:${minutes}`;
+
+            document.getElementById('date').innerText = dateStr;
+            document.getElementById('time').innerText = timeStr;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 2. 대시보드 목업 데이터 (추후 API 연동 시 이 객체들을 업데이트하면 됩니다)
+        const marketData = [
+            { label: '코스피', value: '2,812.50', change: '+0.69%', status: 'up' },
+            { label: '코스닥', value: '870.40', change: '+0.19%', status: 'up' },
+            { label: '다우존스', value: '39,150.33', change: '+0.04%', status: 'up' },
+            { label: 'S&P 500', value: '5,464.62', change: '-0.16%', status: 'down' },
+            { label: '나스닥', value: '17,689.36', change: '-0.18%', status: 'down' }
+        ];
+
+        // ISDRAM: iSelect Global DRAM Semiconductor Index
+        const exchangeData = [
+            { label: '원/달러', value: '1,388.50 원', change: '-1.50', status: 'down' },
+            { label: '원/엔 (100엔)', value: '869.45 원', change: '+2.10', status: 'up' },
+            { label: '원/위안', value: '191.22 원', change: '-0.30', status: 'down' },
+            { label: 'ISDRAM 지수', value: '1,425.80', change: '+2.45%', status: 'up' } 
+        ];
+
+        const newsData = [
+            '미 증시, AI 랠리 피로감에 혼조세 마감',
+            '올해 첫 수도권 폭염특보 발효, 밤부터는 전국 장맛비 예상',
+            'D램 현물가 상승세 지속... 글로벌 ISDRAM 지수 연중 최고치 경신'
+        ];
+
+        const todoData = [
+            '오전 10:00 - 주간 업무 보고 회의 참석',
+            '오후 02:00 - 신규 프로젝트 킥오프 미팅',
+            '오후 06:30 - 헬스장 (하체 운동)'
+        ];
+
+        // 3. UI 렌더링 함수
+        function renderFinancialList(elementId, data) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = data.map(item => `
+                <div class="data-row">
+                    <span class="data-label">${item.label}</span>
+                    <span class="data-value ${item.status}">
+                        ${item.value} <span style="font-size: 13px;">(${item.change})</span>
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function renderTextList(elementId, data, icon) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = data.map(item => `
+                <div class="list-item">
+                    <div class="list-icon">${icon}</div>
+                    <div>${item}</div>
+                </div>
+            `).join('');
+        }
+
+        // 초기 데이터 렌더링 실행
+        renderFinancialList('market-data', marketData);
+        renderFinancialList('exchange-data', exchangeData);
+        renderTextList('news-data', newsData, '📰');
+        renderTextList('todo-data', todoData, '✅');
+    </script>
+</body>
+</html>
