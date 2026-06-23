@@ -9,24 +9,22 @@
         body {
             color: #EAEAEA;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            /* 스크롤 가능하도록 높이 제한 해제 및 auto 설정 */
             min-height: 100vh;
             overflow-y: auto; 
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            gap: 20px; /* 각 섹션 간의 여백 */
+            gap: 20px;
             padding: 30px;
             background-color: #050505;
-            background-attachment: fixed; /* 스크롤 시 배경 고정 */
+            background-attachment: fixed;
             background-size: cover;
             background-position: center;
             transition: background-image 1s ease-in-out;
-            scrollbar-width: none; /* 파이어폭스 스크롤바 숨김 */
+            scrollbar-width: none;
         }
-        body::-webkit-scrollbar { display: none; } /* 크롬 스크롤바 숨김 */
+        body::-webkit-scrollbar { display: none; }
 
-        /* 배경 가독성용 다크 오버레이 (스크롤 시에도 꽉 차도록 fixed) */
         .overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%);
@@ -38,7 +36,6 @@
             display: flex; justify-content: space-between; align-items: flex-end;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 20px;
         }
-        /* [요청 1 반영] 시간과 날짜 가로 배치 및 날짜 크기 확대 */
         .time-box { display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap; }
         .time-box h1 { font-size: 5rem; font-weight: 800; letter-spacing: -2px; line-height: 1; color: #fff; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .time-box p { font-size: 2rem; color: #ddd; font-weight: 700; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -62,18 +59,24 @@
         .hourly-card .h-icon { font-size: 2rem; margin: 5px 0; }
         .hourly-card .h-temp { font-size: 1.2rem; font-weight: 700; color: #fff; margin-top: 8px; }
 
-        /* 중단 2: 실시간 증권/환율 정보 */
+        /* 중단 2: 실시간 증권/환율 정보 (차단 우회 및 공식 위젯 적용) */
         .finance-container { margin-bottom: 15px; }
         .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .finance-card {
             background: rgba(10, 10, 10, 0.7); border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px); border-radius: 12px; padding: 15px;
+            backdrop-filter: blur(5px); border-radius: 12px; 
             display: flex; flex-direction: column; justify-content: center;
+            overflow: hidden; /* 위젯 모서리 둥글게 처리 */
+            min-height: 125px;
         }
+        .card-padding { padding: 15px; }
         .f-title { font-size: 0.85rem; color: #aaa; font-weight: 600; margin-bottom: 8px; }
         .f-price { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 4px; letter-spacing: -0.5px; }
         .f-change { font-size: 0.95rem; font-weight: 600; }
-        .up { color: #ff4d4d; } .down { color: #4d79ff; } .flat { color: #aaaaaa; }
+        .flat { color: #aaaaaa; }
+        
+        /* 트레이딩뷰 위젯 전용 래퍼 */
+        .tradingview-widget-container { width: 100%; height: 100%; display: flex; align-items: center; }
 
         /* 하단: 뉴스 리스트 */
         .news-container { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; padding-bottom: 30px; flex-grow: 1; }
@@ -115,11 +118,41 @@
 
     <div class="finance-container">
         <div class="section-title">Market Indicators</div>
-        <div class="finance-grid" id="finance-wrapper">
-            <div class="finance-card"><span class="f-title">USD/KRW 환율</span><span class="f-price" id="val-usd">데이터 요청 중...</span></div>
-            <div class="finance-card"><span class="f-title">KOSPI</span><span class="f-price" id="val-kospi">데이터 요청 중...</span></div>
-            <div class="finance-card"><span class="f-title">KOSDAQ</span><span class="f-price" id="val-kosdaq">데이터 요청 중...</span></div>
-            <div class="finance-card"><span class="f-title">NASDAQ</span><span class="f-price" id="val-nasdaq">데이터 요청 중...</span></div>
+        <div class="finance-grid">
+            
+            <div class="finance-card card-padding">
+                <span class="f-title">USD/KRW 환율</span>
+                <span class="f-price" id="val-usd">로딩중...</span>
+                <span class="f-change flat">- 실시간 기준환율</span>
+            </div>
+
+            <div class="finance-card">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+                    { "symbol": "KRX:KOSPI", "width": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "kr" }
+                    </script>
+                </div>
+            </div>
+
+            <div class="finance-card">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+                    { "symbol": "KRX:KOSDAQ", "width": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "kr" }
+                    </script>
+                </div>
+            </div>
+
+            <div class="finance-card">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+                    { "symbol": "NASDAQ:IXIC", "width": "100%", "colorTheme": "dark", "isTransparent": true, "locale": "kr" }
+                    </script>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -144,10 +177,10 @@
             setInterval(update, 1000);
         }
 
-        // 2. 날씨 (3시간 단위 렌더링 적용)
+        // 2. 날씨 (3시간 단위)
         function initWeather() {
             if (!navigator.geolocation) {
-                fetchWeatherData(35.1796, 129.0756); // GPS 거부 시 기본 좌표 (부산)
+                fetchWeatherData(35.1796, 129.0756); // 기본 좌표 부산
                 return;
             }
             navigator.geolocation.getCurrentPosition(
@@ -159,7 +192,6 @@
 
         async function fetchWeatherData(lat, lon) {
             try {
-                // 역지오코딩
                 try {
                     const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
                     const geoData = await geoRes.json();
@@ -190,7 +222,6 @@
                 let startIndex = data.hourly.time.findIndex(t => new Date(t).getHours() === nowHour && new Date(t) >= new Date().setHours(0,0,0,0));
                 if(startIndex === -1) startIndex = 0;
 
-                // [요청 2 반영] 3시간 단위로 8번 루프 (총 24시간 분량)
                 for (let i = startIndex; i < startIndex + 24; i += 3) {
                     if (!data.hourly.time[i]) break;
                     const tDate = new Date(data.hourly.time[i]);
@@ -214,62 +245,27 @@
                         </div>
                     `;
                 }
-            } catch (err) {
-                document.getElementById('cur-desc').innerText = "날씨 정보 수신 지연";
-            }
+            } catch (err) { document.getElementById('cur-desc').innerText = "날씨 정보 수신 지연"; }
         }
 
-        // 3. 증권 및 환율 (캐시 초기화 파라미터 적용)
-        async function initFinance() {
+        // 3. 차단 없는 개방형 환율 API 직접 호출 (주식은 HTML 위젯으로 대체되어 JS에서 삭제됨)
+        async function initExchangeRate() {
             try {
-                const exRes = await fetch('https://latest.currency-api.pages.dev/v1/currencies/usd.json');
+                // 완전히 차단 없는 open.er-api 사용
+                const exRes = await fetch('https://open.er-api.com/v6/latest/USD');
                 const exData = await exRes.json();
-                document.getElementById('val-usd').parentNode.innerHTML = `
-                    <span class="f-title">USD/KRW 환율</span>
-                    <span class="f-price">${formatNum(exData.usd.krw)} ₩</span>
-                    <span class="f-change flat">- 실시간 기준환율</span>
-                `;
-            } catch(e) { document.getElementById('val-usd').innerText = "데이터 지연"; }
-
-            try {
-                // [요청 4 반영] 주소 끝에 난수(&t=시간)를 붙여 프록시 서버의 차단 및 캐싱 우회
-                const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC&t=${Date.now()}`;
-                const stockRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(stockUrl)}`);
-                const stockData = await stockRes.json();
-                
-                // .contents 내부 문자열 JSON을 다시 파싱
-                const stocks = JSON.parse(stockData.contents).quoteResponse.result;
-
-                stocks.forEach(item => {
-                    const price = item.regularMarketPrice ? formatNum(item.regularMarketPrice) : '0.00';
-                    const change = item.regularMarketChange || 0;
-                    const percent = item.regularMarketChangePercent || 0;
-                    const colorCls = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat');
-                    const sign = change > 0 ? '▲' : (change < 0 ? '▼' : '-');
-                    const innerHTML = `
-                        <span class="f-title">${item.symbol === '^KS11' ? 'KOSPI' : (item.symbol === '^KQ11' ? 'KOSDAQ' : 'NASDAQ')}</span>
-                        <span class="f-price">${price}</span>
-                        <span class="f-change ${colorCls}">${sign} ${formatNum(Math.abs(change))} (${percent.toFixed(2)}%)</span>
-                    `;
-
-                    if(item.symbol === '^KS11') document.getElementById('val-kospi').parentNode.innerHTML = innerHTML;
-                    if(item.symbol === '^KQ11') document.getElementById('val-kosdaq').parentNode.innerHTML = innerHTML;
-                    if(item.symbol === '^IXIC') document.getElementById('val-nasdaq').parentNode.innerHTML = innerHTML;
-                });
-            } catch(e) {
-                console.error("증권 에러", e);
-                document.getElementById('val-kospi').innerText = "데이터 지연";
-                document.getElementById('val-kosdaq').innerText = "데이터 지연";
-                document.getElementById('val-nasdaq').innerText = "데이터 지연";
+                document.getElementById('val-usd').innerText = formatNum(exData.rates.KRW) + ' ₩';
+            } catch(e) { 
+                document.getElementById('val-usd').innerText = "데이터 지연"; 
             }
         }
 
-        // 4. 뉴스 (구글 뉴스 대체 -> 차단 없는 매일경제 & 한국경제 공식 RSS 직접 파싱)
+        // 4. 뉴스 (매일경제 & 한국경제 официаль RSS 직접 파싱)
         async function initNews() {
             try {
-                // 매일경제(증권) 및 한국경제(경제) 피드 활용
-                const mkUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.mk.co.kr/rss/30100041/')}`;
-                const hkUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://rss.hankyung.com/feed/economy.xml')}`;
+                // 난수를 붙여 캐시 차단 우회
+                const mkUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.mk.co.kr/rss/30100041/')}&t=${Date.now()}`;
+                const hkUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://rss.hankyung.com/feed/economy.xml')}&t=${Date.now()}`;
 
                 const [res1, res2] = await Promise.all([ fetch(mkUrl), fetch(hkUrl) ]);
                 const data1 = await res1.json();
@@ -293,13 +289,11 @@
                     combinedNews.push(`<span class="news-tag tag-hk">한국경제</span> <span>${title}</span>`);
                 }
 
-                // 기사 무작위 섞기
                 combinedNews.sort(() => Math.random() - 0.5);
 
                 if (combinedNews.length > 0) {
                     const wrapper = document.getElementById('news-wrapper');
                     wrapper.innerHTML = '';
-                    // 5줄의 핵심 뉴스 렌더링
                     combinedNews.slice(0, 5).forEach((newsHtml) => {
                         wrapper.innerHTML += `<div class="news-item">${newsHtml}</div>`;
                     });
@@ -310,7 +304,6 @@
             }
         }
 
-        // 번인 방지
         function initAntiBurnIn() {
             setInterval(() => {
                 const x = Math.floor(Math.random() * 5) - 2;
@@ -319,23 +312,22 @@
             }, 300000);
         }
 
-        // 화면 꺼짐 방지
         async function wakeLock() { try { await navigator.wakeLock.request('screen'); } catch (e) {} }
 
         document.addEventListener('DOMContentLoaded', () => {
             initClock(); 
             initWeather(); 
-            initFinance(); 
+            initExchangeRate(); 
             initNews(); 
             initAntiBurnIn();
             
             document.body.addEventListener('click', wakeLock); 
             wakeLock();
             
-            // 데이터 자동 갱신 주기
-            setInterval(initWeather, 1800000); // 30분
-            setInterval(initNews, 1800000);    // 30분
-            setInterval(initFinance, 120000);  // 2분
+            // 데이터 자동 갱신
+            setInterval(initWeather, 1800000); // 날씨 30분
+            setInterval(initNews, 1800000);    // 뉴스 30분
+            setInterval(initExchangeRate, 600000); // 환율 10분
         });
     </script>
 </body>
