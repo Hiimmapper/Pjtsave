@@ -20,14 +20,13 @@
             transition: background-image 1s ease-in-out;
         }
 
-        /* 배경 가독성용 다크 오버레이 */
         .overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.85) 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%);
             z-index: -1;
         }
 
-        /* 1. 상단: 시계 & GPS 기반 날씨 */
+        /* 1. 상단: 시계 & 날씨 */
         .header-container {
             display: flex; justify-content: space-between; align-items: flex-end;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 20px;
@@ -40,7 +39,7 @@
         .weather-box .temp { font-size: 3.5rem; font-weight: 300; color: #fff; line-height: 1; }
         .weather-box .desc { font-size: 1rem; color: #ddd; margin-top: 5px; font-weight: 500; }
 
-        /* 중단 1: 하루 확장 시간대별 날씨 */
+        /* 중단 1: 시간대별 날씨 */
         .hourly-container { margin: 25px 0 15px 0; }
         .section-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #aaa; margin-bottom: 12px; font-weight: 700; }
         .hourly-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scrollbar-width: none; }
@@ -65,11 +64,9 @@
         .f-title { font-size: 0.85rem; color: #aaa; font-weight: 600; margin-bottom: 8px; }
         .f-price { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 4px; letter-spacing: -0.5px; }
         .f-change { font-size: 0.95rem; font-weight: 600; }
-        .up { color: #ff4d4d; } /* 상승 빨강 */
-        .down { color: #4d79ff; } /* 하락 파랑 */
-        .flat { color: #aaaaaa; }
+        .up { color: #ff4d4d; } .down { color: #4d79ff; } .flat { color: #aaaaaa; }
 
-        /* 하단: 긴급 뉴스 & 경제 리스트 (꽉 채운 레이아웃) */
+        /* 하단: 뉴스 리스트 */
         .news-container { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; flex-grow: 1; }
         .news-wrapper { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
         .news-item {
@@ -103,17 +100,17 @@
     <div class="hourly-container">
         <div class="section-title">Today's Weather Flow</div>
         <div class="hourly-scroll" id="hourly-wrapper">
-            <div class="hourly-card" style="width:100%;"><span class="h-time">GPS 데이터 연동 중...</span></div>
+            <div class="hourly-card" style="width:100%;"><span class="h-time">날씨 데이터 연동 중...</span></div>
         </div>
     </div>
 
     <div class="finance-container">
         <div class="section-title">Market Indicators</div>
         <div class="finance-grid" id="finance-wrapper">
-            <div class="finance-card"><span class="f-title">USD/KRW 환율</span><span class="f-price">로딩중...</span></div>
-            <div class="finance-card"><span class="f-title">KOSPI</span><span class="f-price">로딩중...</span></div>
-            <div class="finance-card"><span class="f-title">KOSDAQ</span><span class="f-price">로딩중...</span></div>
-            <div class="finance-card"><span class="f-title">NASDAQ</span><span class="f-price">로딩중...</span></div>
+            <div class="finance-card"><span class="f-title">USD/KRW 환율</span><span class="f-price" id="val-usd">데이터 요청 중...</span></div>
+            <div class="finance-card"><span class="f-title">KOSPI</span><span class="f-price" id="val-kospi">데이터 요청 중...</span></div>
+            <div class="finance-card"><span class="f-title">KOSDAQ</span><span class="f-price" id="val-kosdaq">데이터 요청 중...</span></div>
+            <div class="finance-card"><span class="f-title">NASDAQ</span><span class="f-price" id="val-nasdaq">데이터 요청 중...</span></div>
         </div>
     </div>
 
@@ -127,34 +124,43 @@
     <script>
         const formatNum = (num) => parseFloat(num).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        // 1. 실시간 시계
+        // 1. 시계 (즉각 실행되도록 수정)
         function initClock() {
-            setInterval(() => {
+            const update = () => {
                 const now = new Date();
                 document.getElementById('txt-time').innerText = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
                 document.getElementById('txt-date').innerText = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-            }, 1000);
+            };
+            update(); // 즉시 1회 실행
+            setInterval(update, 1000);
         }
 
-        // 2. 날씨 (기존과 동일하게 정상 작동)
+        // 2. 날씨 및 GPS (에러 방어 코드 강화)
         function initWeather() {
+            if (!navigator.geolocation) {
+                fetchWeatherData(35.1796, 129.0756); // GPS 미지원시 부산 위경도 기본값
+                return;
+            }
+
             navigator.geolocation.getCurrentPosition(
                 pos => fetchWeatherData(pos.coords.latitude, pos.coords.longitude),
-                err => { fetchWeatherData(37.4979, 127.0276); },
-                { enableHighAccuracy: false, maximumAge: 600000, timeout: 10000 }
+                err => { fetchWeatherData(35.1796, 129.0756); },
+                { enableHighAccuracy: false, maximumAge: 600000, timeout: 5000 } // 타임아웃 5초로 단축하여 무한 대기 방지
             );
         }
 
         async function fetchWeatherData(lat, lon) {
             try {
+                // 역지오코딩 (지역명 가져오기)
                 try {
                     const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
                     const geoData = await geoRes.json();
-                    if(geoData.city || geoData.locality) {
-                        document.getElementById('cur-location').innerText = `📍 ${geoData.city || ''} ${geoData.locality || ''}`.trim();
-                    }
-                } catch(e) {}
+                    document.getElementById('cur-location').innerText = `📍 ${geoData.city || ''} ${geoData.locality || '대한민국'}`.trim();
+                } catch(e) { 
+                    document.getElementById('cur-location').innerText = '📍 위치 파악 불가'; 
+                }
 
+                // 날씨 파싱
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`);
                 const data = await res.json();
                 
@@ -202,84 +208,81 @@
                         </div>
                     `;
                 }
-            } catch (err) {}
+            } catch (err) {
+                document.getElementById('cur-desc').innerText = "날씨 정보 수신 지연";
+            }
         }
 
-        // 3. 안정적인 프록시(AllOrigins)를 통한 증권 데이터 확보
+        // 3. 증권 및 환율 (raw 속성 사용하여 JSON 강제 반환 및 충돌 방지)
         async function initFinance() {
+            // 환율
             try {
-                const wrapper = document.getElementById('finance-wrapper');
-                let html = '';
+                const exRes = await fetch('https://latest.currency-api.pages.dev/v1/currencies/usd.json');
+                const exData = await exRes.json();
+                document.getElementById('val-usd').parentNode.innerHTML = `
+                    <span class="f-title">USD/KRW 환율</span>
+                    <span class="f-price">${formatNum(exData.usd.krw)} ₩</span>
+                    <span class="f-change flat">- 실시간 기준환율</span>
+                `;
+            } catch(e) { document.getElementById('val-usd').innerText = "지연됨"; }
 
-                // 환율 (CORS 없는 직접 API)
-                try {
-                    const exRes = await fetch('https://latest.currency-api.pages.dev/v1/currencies/usd.json');
-                    const exData = await exRes.json();
-                    html += `
-                        <div class="finance-card">
-                            <span class="f-title">USD/KRW 환율</span>
-                            <span class="f-price">${formatNum(exData.usd.krw)} ₩</span>
-                            <span class="f-change flat">실시간 기준환율</span>
-                        </div>
+            // 주식
+            try {
+                const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC`;
+                // 원시 데이터를 직접 받아오는 raw 파라미터 사용 (안정성 극대화)
+                const stockRes = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(stockUrl)}`);
+                const stockData = await stockRes.json();
+                const stocks = stockData.quoteResponse.result;
+
+                stocks.forEach(item => {
+                    const price = item.regularMarketPrice ? formatNum(item.regularMarketPrice) : '0.00';
+                    const change = item.regularMarketChange || 0;
+                    const percent = item.regularMarketChangePercent || 0;
+                    const colorCls = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat');
+                    const sign = change > 0 ? '▲' : (change < 0 ? '▼' : '-');
+                    const innerHTML = `
+                        <span class="f-title">${item.symbol === '^KS11' ? 'KOSPI' : (item.symbol === '^KQ11' ? 'KOSDAQ' : 'NASDAQ')}</span>
+                        <span class="f-price">${price}</span>
+                        <span class="f-change ${colorCls}">${sign} ${formatNum(Math.abs(change))} (${percent.toFixed(2)}%)</span>
                     `;
-                } catch(e) { html += '<div class="finance-card">환율 오류</div>'; }
 
-                // 주식 지수 (프록시 서버 교체 적용: AllOrigins)
-                try {
-                    const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC`;
-                    const stockRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(stockUrl)}`);
-                    const stockData = await stockRes.json();
-                    const stocks = JSON.parse(stockData.contents).quoteResponse.result;
-
-                    stocks.forEach(item => {
-                        let name = item.symbol === '^KS11' ? 'KOSPI' : (item.symbol === '^KQ11' ? 'KOSDAQ' : 'NASDAQ');
-                        const price = item.regularMarketPrice ? formatNum(item.regularMarketPrice) : '0.00';
-                        const change = item.regularMarketChange || 0;
-                        const percent = item.regularMarketChangePercent || 0;
-                        
-                        const colorCls = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat');
-                        const sign = change > 0 ? '▲' : (change < 0 ? '▼' : '-');
-
-                        html += `
-                            <div class="finance-card">
-                                <span class="f-title">${name}</span>
-                                <span class="f-price">${price}</span>
-                                <span class="f-change ${colorCls}">${sign} ${formatNum(Math.abs(change))} (${percent.toFixed(2)}%)</span>
-                            </div>
-                        `;
-                    });
-                } catch(e) { 
-                    html += '<div class="finance-card"><span class="f-title">KOSPI</span><span class="f-price">로딩 실패</span></div>';
-                    html += '<div class="finance-card"><span class="f-title">KOSDAQ</span><span class="f-price">로딩 실패</span></div>';
-                    html += '<div class="finance-card"><span class="f-title">NASDAQ</span><span class="f-price">로딩 실패</span></div>';
-                }
-                
-                wrapper.innerHTML = html;
-
-            } catch (err) { console.error("금융 데이터 로드 실패", err); }
+                    if(item.symbol === '^KS11') document.getElementById('val-kospi').parentNode.innerHTML = innerHTML;
+                    if(item.symbol === '^KQ11') document.getElementById('val-kosdaq').parentNode.innerHTML = innerHTML;
+                    if(item.symbol === '^IXIC') document.getElementById('val-nasdaq').parentNode.innerHTML = innerHTML;
+                });
+            } catch(e) {
+                document.getElementById('val-kospi').innerText = "데이터 지연";
+                document.getElementById('val-kosdaq').innerText = "데이터 지연";
+                document.getElementById('val-nasdaq').innerText = "데이터 지연";
+            }
         }
 
-        // 4. 뉴스를 빈칸 없이 4줄 리스트로 렌더링
+        // 4. 뉴스 (DOMParser를 이용해 XML 원본 직접 파싱)
         async function initNews() {
             try {
-                const reutersUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://news.google.com/rss/search?q=로이터&hl=ko&gl=KR&ceid=KR:ko')}`;
-                const econUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://news.google.com/rss/search?q=경제&hl=ko&gl=KR&ceid=KR:ko')}`;
+                const reutersUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://news.google.com/rss/search?q=로이터&hl=ko&gl=KR&ceid=KR:ko')}`;
+                const econUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://news.google.com/rss/search?q=경제&hl=ko&gl=KR&ceid=KR:ko')}`;
 
                 const [res1, res2] = await Promise.all([ fetch(reutersUrl), fetch(econUrl) ]);
-                const data1 = await res1.json();
-                const data2 = await res2.json();
+                const xmlText1 = await res1.text();
+                const xmlText2 = await res2.text();
+
+                const parser = new DOMParser();
+                const xml1 = parser.parseFromString(xmlText1, "text/xml");
+                const xml2 = parser.parseFromString(xmlText2, "text/xml");
 
                 let combinedNews = [];
                 
-                if(data1.items) {
-                    data1.items.slice(0, 5).forEach(item => {
-                        combinedNews.push(`<span class="news-tag tag-reuters">로이터 통신</span> <span>${item.title.split(' - ')[0]}</span>`);
-                    });
+                const items1 = xml1.querySelectorAll("item");
+                for(let i=0; i<Math.min(items1.length, 5); i++) {
+                    const title = items1[i].querySelector("title").textContent.split(' - ')[0];
+                    combinedNews.push(`<span class="news-tag tag-reuters">로이터 통신</span> <span>${title}</span>`);
                 }
-                if(data2.items) {
-                    data2.items.slice(0, 5).forEach(item => {
-                        combinedNews.push(`<span class="news-tag tag-econ">한국 경제</span> <span>${item.title.split(' - ')[0]}</span>`);
-                    });
+
+                const items2 = xml2.querySelectorAll("item");
+                for(let i=0; i<Math.min(items2.length, 5); i++) {
+                    const title = items2[i].querySelector("title").textContent.split(' - ')[0];
+                    combinedNews.push(`<span class="news-tag tag-econ">한국 경제</span> <span>${title}</span>`);
                 }
 
                 combinedNews.sort(() => Math.random() - 0.5);
@@ -287,16 +290,42 @@
                 if (combinedNews.length > 0) {
                     const wrapper = document.getElementById('news-wrapper');
                     wrapper.innerHTML = '';
-                    // 롤링을 없애고 4개의 뉴스를 꽉 채워 배치
                     combinedNews.slice(0, 4).forEach((newsHtml) => {
                         wrapper.innerHTML += `<div class="news-item">${newsHtml}</div>`;
                     });
                 }
-            } catch (err) { console.error("뉴스 로드 실패", err); }
+            } catch (err) { 
+                document.getElementById('news-wrapper').innerHTML = '<div class="news-item">뉴스 정보를 가져오지 못했습니다. 잠시 후 재시도합니다.</div>'; 
+            }
         }
 
+        // 번인 방지
         function initAntiBurnIn() {
             setInterval(() => {
                 const x = Math.floor(Math.random() * 5) - 2;
                 const y = Math.floor(Math.random() * 5) - 2;
-                document.body.style.transform = `translate(${x}px, ${
+                document.body.style.transform = `translate(${x}px, ${y}px)`;
+            }, 300000);
+        }
+
+        // 화면 꺼짐 방지
+        async function wakeLock() { try { await navigator.wakeLock.request('screen'); } catch (e) {} }
+
+        // window.onload 대신 즉각 실행되는 DOMContentLoaded 사용
+        document.addEventListener('DOMContentLoaded', () => {
+            initClock(); 
+            initWeather(); 
+            initFinance(); 
+            initNews(); 
+            initAntiBurnIn();
+            
+            document.body.addEventListener('click', wakeLock); 
+            wakeLock();
+            
+            setInterval(initWeather, 1800000); 
+            setInterval(initNews, 1800000);    
+            setInterval(initFinance, 60000);   
+        });
+    </script>
+</body>
+</html>
