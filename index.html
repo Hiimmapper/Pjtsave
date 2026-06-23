@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Executive OS | Mobile Ready</title>
+    <title>Executive OS | Mobile Core</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -62,14 +62,6 @@
         .h-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
         .h-icon { font-size: 1.2rem; }
         .h-temp { font-size: 0.9rem; font-weight: 700; }
-
-        /* To-Do Panel */
-        .todo-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; }
-        .todo-item:last-child { border-bottom: none; }
-        .todo-icon { color: var(--accent-blue); font-size: 1.1rem; margin-top: 2px; }
-        .todo-content { flex: 1; }
-        .todo-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
-        .todo-time { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
 
         /* Market & ISDRAM Panel */
         .isdram-row { padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; background: rgba(139, 92, 246, 0.05); border-bottom: 1px solid var(--border-color); }
@@ -133,50 +125,21 @@
 
         <div class="ai-banner">
             <div class="ai-icon"><i class="fa-solid fa-sparkles"></i></div>
-            <div class="ai-text" id="ai-insight">AI가 현재 접속하신 위치의 기상과 일정을 동기화하여 분석하고 있습니다...</div>
+            <div class="ai-text" id="ai-insight">AI가 현재 접속하신 위치의 기상과 글로벌 시장 데이터를 동기화하여 분석하고 있습니다...</div>
         </div>
 
         <div class="dashboard-grid">
             
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                <div class="panel">
-                    <div class="panel-header"><i class="fa-solid fa-location-dot"></i> Local Environment</div>
-                    <div class="weather-current">
-                        <div class="w-icon" id="w-icon-now">⏳</div>
-                        <div class="w-temp" id="w-temp-now">--°</div>
-                        <div class="w-desc" id="w-desc-main">기상 정보 로딩 중</div>
-                        <div class="w-location" id="w-location"><i class="fa-solid fa-crosshairs"></i> 위치 확인 중</div>
-                    </div>
-                    <div class="weather-hourly" id="hourly-container">
-                        <div class="h-item"><div class="h-time">로딩중</div><div class="h-icon">⏳</div><div class="h-temp">--°</div></div>
-                    </div>
+            <div class="panel">
+                <div class="panel-header"><i class="fa-solid fa-location-dot"></i> Local Environment</div>
+                <div class="weather-current">
+                    <div class="w-icon" id="w-icon-now">⏳</div>
+                    <div class="w-temp" id="w-temp-now">--°</div>
+                    <div class="w-desc" id="w-desc-main">기상 정보 로딩 중</div>
+                    <div class="w-location" id="w-location"><i class="fa-solid fa-crosshairs"></i> 위치 확인 중</div>
                 </div>
-
-                <div class="panel">
-                    <div class="panel-header"><i class="fa-solid fa-list-check"></i> Today's Action</div>
-                    <div>
-                        <div class="todo-item">
-                            <div class="todo-icon"><i class="fa-solid fa-circle-check"></i></div>
-                            <div class="todo-content">
-                                <div class="todo-title">주간 업무 보고 회의 참석</div>
-                                <div class="todo-time">오전 10:00</div>
-                            </div>
-                        </div>
-                        <div class="todo-item">
-                            <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
-                            <div class="todo-content">
-                                <div class="todo-title" style="color:var(--text-muted);">신규 프로젝트 킥오프 미팅</div>
-                                <div class="todo-time">오후 02:00</div>
-                            </div>
-                        </div>
-                        <div class="todo-item">
-                            <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
-                            <div class="todo-content">
-                                <div class="todo-title" style="color:var(--text-muted);">헬스장 (하체 운동)</div>
-                                <div class="todo-time">오후 06:30</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="weather-hourly" id="hourly-container">
+                    <div class="h-item"><div class="h-time">로딩중</div><div class="h-icon">⏳</div><div class="h-temp">--°</div></div>
                 </div>
             </div>
 
@@ -296,13 +259,13 @@
                 }
                 document.getElementById('hourly-container').innerHTML = hourlyHtml;
 
-                // AI Insight
+                // AI Insight (일정이 사라졌으므로 날씨와 투자 동향을 결합한 멘트로 변경)
                 const aiEl = document.getElementById('ai-insight');
                 const isRaining = data.current.weather_code >= 51 && data.current.weather_code <= 95;
                 if(isRaining) {
-                    aiEl.innerHTML = `현재 <span style="color:var(--accent-blue);">비가 내리고 있습니다.</span> 외근 시 교통 체증이 예상되므로, 오후 미팅을 화상으로 전환할 것을 권장합니다.`;
+                    aiEl.innerHTML = `현재 <span style="color:var(--accent-blue);">비가 내리고 있습니다.</span> 외부 활동을 줄이고 주요 시장 지표와 글로벌 증시 변동성에 집중하기 좋은 날씨입니다.`;
                 } else {
-                    aiEl.innerHTML = `오늘 기상은 <span style="color:var(--accent-purple);">활동하기 좋은 맑은 상태</span>입니다. 오후 6시 30분 '하체 운동' 일정을 소화하기 완벽한 날씨입니다.`;
+                    aiEl.innerHTML = `오늘 기상은 <span style="color:var(--accent-purple);">활동하기 좋은 맑은 상태</span>입니다. 쾌적한 날씨와 함께 성공적인 시장 분석과 하루를 계획해 보십시오.`;
                 }
 
             } catch (error) {
