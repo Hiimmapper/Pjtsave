@@ -9,19 +9,26 @@
         body {
             color: #EAEAEA;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            height: 100vh;
+            /* 스크롤 가능하도록 높이 제한 해제 및 auto 설정 */
+            min-height: 100vh;
+            overflow-y: auto; 
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
+            gap: 20px; /* 각 섹션 간의 여백 */
             padding: 30px;
-            overflow: hidden;
             background-color: #050505;
+            background-attachment: fixed; /* 스크롤 시 배경 고정 */
             background-size: cover;
             background-position: center;
             transition: background-image 1s ease-in-out;
+            scrollbar-width: none; /* 파이어폭스 스크롤바 숨김 */
         }
+        body::-webkit-scrollbar { display: none; } /* 크롬 스크롤바 숨김 */
 
+        /* 배경 가독성용 다크 오버레이 (스크롤 시에도 꽉 차도록 fixed) */
         .overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%);
             z-index: -1;
         }
@@ -31,16 +38,18 @@
             display: flex; justify-content: space-between; align-items: flex-end;
             border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 20px;
         }
+        /* [요청 1 반영] 시간과 날짜 가로 배치 및 날짜 크기 확대 */
+        .time-box { display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap; }
         .time-box h1 { font-size: 5rem; font-weight: 800; letter-spacing: -2px; line-height: 1; color: #fff; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .time-box p { font-size: 1.1rem; color: #ccc; margin-top: 10px; font-weight: 500; }
+        .time-box p { font-size: 2rem; color: #ddd; font-weight: 700; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         
         .weather-box { text-align: right; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .weather-box .location { font-size: 1.1rem; color: #00e676; font-weight: 600; margin-bottom: 5px; display: flex; justify-content: flex-end; align-items: center; gap: 5px; }
         .weather-box .temp { font-size: 3.5rem; font-weight: 300; color: #fff; line-height: 1; }
         .weather-box .desc { font-size: 1rem; color: #ddd; margin-top: 5px; font-weight: 500; }
 
-        /* 중단 1: 시간대별 날씨 */
-        .hourly-container { margin: 25px 0 15px 0; }
+        /* 중단 1: 3시간 단위 날씨 */
+        .hourly-container { margin: 15px 0; }
         .section-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #aaa; margin-bottom: 12px; font-weight: 700; }
         .hourly-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scrollbar-width: none; }
         .hourly-scroll::-webkit-scrollbar { display: none; }
@@ -54,7 +63,7 @@
         .hourly-card .h-temp { font-size: 1.2rem; font-weight: 700; color: #fff; margin-top: 8px; }
 
         /* 중단 2: 실시간 증권/환율 정보 */
-        .finance-container { margin-bottom: 25px; }
+        .finance-container { margin-bottom: 15px; }
         .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .finance-card {
             background: rgba(10, 10, 10, 0.7); border: 1px solid rgba(255, 255, 255, 0.1);
@@ -67,7 +76,7 @@
         .up { color: #ff4d4d; } .down { color: #4d79ff; } .flat { color: #aaaaaa; }
 
         /* 하단: 뉴스 리스트 */
-        .news-container { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; flex-grow: 1; }
+        .news-container { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; padding-bottom: 30px; flex-grow: 1; }
         .news-wrapper { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
         .news-item {
             font-size: 1.25rem; line-height: 1.4; font-weight: 600; color: #fff; word-break: keep-all; 
@@ -77,8 +86,8 @@
             display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 700; 
             margin-right: 12px; white-space: nowrap; margin-top: 2px;
         }
-        .tag-reuters { background-color: #ff9800; color: #000; }
-        .tag-econ { background-color: #00bcd4; color: #000; }
+        .tag-mk { background-color: #ff9800; color: #000; }
+        .tag-hk { background-color: #00bcd4; color: #000; }
 
     </style>
 </head>
@@ -98,7 +107,7 @@
     </div>
 
     <div class="hourly-container">
-        <div class="section-title">Today's Weather Flow</div>
+        <div class="section-title">24-Hour Weather Flow</div>
         <div class="hourly-scroll" id="hourly-wrapper">
             <div class="hourly-card" style="width:100%;"><span class="h-time">날씨 데이터 연동 중...</span></div>
         </div>
@@ -115,7 +124,7 @@
     </div>
 
     <div class="news-container">
-        <div class="section-title">Live Updates : Reuters & Economy</div>
+        <div class="section-title">Live Updates : Economy News</div>
         <div class="news-wrapper" id="news-wrapper">
             <div class="news-item">뉴스를 불러오는 중입니다...</div>
         </div>
@@ -124,43 +133,39 @@
     <script>
         const formatNum = (num) => parseFloat(num).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        // 1. 시계 (즉각 실행되도록 수정)
+        // 1. 시계
         function initClock() {
             const update = () => {
                 const now = new Date();
                 document.getElementById('txt-time').innerText = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
                 document.getElementById('txt-date').innerText = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
             };
-            update(); // 즉시 1회 실행
+            update();
             setInterval(update, 1000);
         }
 
-        // 2. 날씨 및 GPS (에러 방어 코드 강화)
+        // 2. 날씨 (3시간 단위 렌더링 적용)
         function initWeather() {
             if (!navigator.geolocation) {
-                fetchWeatherData(35.1796, 129.0756); // GPS 미지원시 부산 위경도 기본값
+                fetchWeatherData(35.1796, 129.0756); // GPS 거부 시 기본 좌표 (부산)
                 return;
             }
-
             navigator.geolocation.getCurrentPosition(
                 pos => fetchWeatherData(pos.coords.latitude, pos.coords.longitude),
                 err => { fetchWeatherData(35.1796, 129.0756); },
-                { enableHighAccuracy: false, maximumAge: 600000, timeout: 5000 } // 타임아웃 5초로 단축하여 무한 대기 방지
+                { enableHighAccuracy: false, maximumAge: 600000, timeout: 5000 }
             );
         }
 
         async function fetchWeatherData(lat, lon) {
             try {
-                // 역지오코딩 (지역명 가져오기)
+                // 역지오코딩
                 try {
                     const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
                     const geoData = await geoRes.json();
                     document.getElementById('cur-location').innerText = `📍 ${geoData.city || ''} ${geoData.locality || '대한민국'}`.trim();
-                } catch(e) { 
-                    document.getElementById('cur-location').innerText = '📍 위치 파악 불가'; 
-                }
+                } catch(e) { document.getElementById('cur-location').innerText = '📍 위치 파악 불가'; }
 
-                // 날씨 파싱
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`);
                 const data = await res.json();
                 
@@ -185,7 +190,8 @@
                 let startIndex = data.hourly.time.findIndex(t => new Date(t).getHours() === nowHour && new Date(t) >= new Date().setHours(0,0,0,0));
                 if(startIndex === -1) startIndex = 0;
 
-                for (let i = startIndex; i < startIndex + 12; i++) {
+                // [요청 2 반영] 3시간 단위로 8번 루프 (총 24시간 분량)
+                for (let i = startIndex; i < startIndex + 24; i += 3) {
                     if (!data.hourly.time[i]) break;
                     const tDate = new Date(data.hourly.time[i]);
                     const ampm = tDate.getHours() >= 12 ? '오후' : '오전';
@@ -213,9 +219,8 @@
             }
         }
 
-        // 3. 증권 및 환율 (raw 속성 사용하여 JSON 강제 반환 및 충돌 방지)
+        // 3. 증권 및 환율 (캐시 초기화 파라미터 적용)
         async function initFinance() {
-            // 환율
             try {
                 const exRes = await fetch('https://latest.currency-api.pages.dev/v1/currencies/usd.json');
                 const exData = await exRes.json();
@@ -224,15 +229,16 @@
                     <span class="f-price">${formatNum(exData.usd.krw)} ₩</span>
                     <span class="f-change flat">- 실시간 기준환율</span>
                 `;
-            } catch(e) { document.getElementById('val-usd').innerText = "지연됨"; }
+            } catch(e) { document.getElementById('val-usd').innerText = "데이터 지연"; }
 
-            // 주식
             try {
-                const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC`;
-                // 원시 데이터를 직접 받아오는 raw 파라미터 사용 (안정성 극대화)
-                const stockRes = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(stockUrl)}`);
+                // [요청 4 반영] 주소 끝에 난수(&t=시간)를 붙여 프록시 서버의 차단 및 캐싱 우회
+                const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC&t=${Date.now()}`;
+                const stockRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(stockUrl)}`);
                 const stockData = await stockRes.json();
-                const stocks = stockData.quoteResponse.result;
+                
+                // .contents 내부 문자열 JSON을 다시 파싱
+                const stocks = JSON.parse(stockData.contents).quoteResponse.result;
 
                 stocks.forEach(item => {
                     const price = item.regularMarketPrice ? formatNum(item.regularMarketPrice) : '0.00';
@@ -251,50 +257,55 @@
                     if(item.symbol === '^IXIC') document.getElementById('val-nasdaq').parentNode.innerHTML = innerHTML;
                 });
             } catch(e) {
+                console.error("증권 에러", e);
                 document.getElementById('val-kospi').innerText = "데이터 지연";
                 document.getElementById('val-kosdaq').innerText = "데이터 지연";
                 document.getElementById('val-nasdaq').innerText = "데이터 지연";
             }
         }
 
-        // 4. 뉴스 (DOMParser를 이용해 XML 원본 직접 파싱)
+        // 4. 뉴스 (구글 뉴스 대체 -> 차단 없는 매일경제 & 한국경제 공식 RSS 직접 파싱)
         async function initNews() {
             try {
-                const reutersUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://news.google.com/rss/search?q=로이터&hl=ko&gl=KR&ceid=KR:ko')}`;
-                const econUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://news.google.com/rss/search?q=경제&hl=ko&gl=KR&ceid=KR:ko')}`;
+                // 매일경제(증권) 및 한국경제(경제) 피드 활용
+                const mkUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://www.mk.co.kr/rss/30100041/')}`;
+                const hkUrl = `https://api.allorigins.win/get?url=${encodeURIComponent('https://rss.hankyung.com/feed/economy.xml')}`;
 
-                const [res1, res2] = await Promise.all([ fetch(reutersUrl), fetch(econUrl) ]);
-                const xmlText1 = await res1.text();
-                const xmlText2 = await res2.text();
+                const [res1, res2] = await Promise.all([ fetch(mkUrl), fetch(hkUrl) ]);
+                const data1 = await res1.json();
+                const data2 = await res2.json();
 
                 const parser = new DOMParser();
-                const xml1 = parser.parseFromString(xmlText1, "text/xml");
-                const xml2 = parser.parseFromString(xmlText2, "text/xml");
+                const xml1 = parser.parseFromString(data1.contents, "text/xml");
+                const xml2 = parser.parseFromString(data2.contents, "text/xml");
 
                 let combinedNews = [];
                 
                 const items1 = xml1.querySelectorAll("item");
                 for(let i=0; i<Math.min(items1.length, 5); i++) {
-                    const title = items1[i].querySelector("title").textContent.split(' - ')[0];
-                    combinedNews.push(`<span class="news-tag tag-reuters">로이터 통신</span> <span>${title}</span>`);
+                    const title = items1[i].querySelector("title").textContent;
+                    combinedNews.push(`<span class="news-tag tag-mk">매일경제</span> <span>${title}</span>`);
                 }
 
                 const items2 = xml2.querySelectorAll("item");
                 for(let i=0; i<Math.min(items2.length, 5); i++) {
-                    const title = items2[i].querySelector("title").textContent.split(' - ')[0];
-                    combinedNews.push(`<span class="news-tag tag-econ">한국 경제</span> <span>${title}</span>`);
+                    const title = items2[i].querySelector("title").textContent;
+                    combinedNews.push(`<span class="news-tag tag-hk">한국경제</span> <span>${title}</span>`);
                 }
 
+                // 기사 무작위 섞기
                 combinedNews.sort(() => Math.random() - 0.5);
 
                 if (combinedNews.length > 0) {
                     const wrapper = document.getElementById('news-wrapper');
                     wrapper.innerHTML = '';
-                    combinedNews.slice(0, 4).forEach((newsHtml) => {
+                    // 5줄의 핵심 뉴스 렌더링
+                    combinedNews.slice(0, 5).forEach((newsHtml) => {
                         wrapper.innerHTML += `<div class="news-item">${newsHtml}</div>`;
                     });
                 }
             } catch (err) { 
+                console.error("뉴스 에러", err);
                 document.getElementById('news-wrapper').innerHTML = '<div class="news-item">뉴스 정보를 가져오지 못했습니다. 잠시 후 재시도합니다.</div>'; 
             }
         }
@@ -311,7 +322,6 @@
         // 화면 꺼짐 방지
         async function wakeLock() { try { await navigator.wakeLock.request('screen'); } catch (e) {} }
 
-        // window.onload 대신 즉각 실행되는 DOMContentLoaded 사용
         document.addEventListener('DOMContentLoaded', () => {
             initClock(); 
             initWeather(); 
@@ -322,9 +332,10 @@
             document.body.addEventListener('click', wakeLock); 
             wakeLock();
             
-            setInterval(initWeather, 1800000); 
-            setInterval(initNews, 1800000);    
-            setInterval(initFinance, 60000);   
+            // 데이터 자동 갱신 주기
+            setInterval(initWeather, 1800000); // 30분
+            setInterval(initNews, 1800000);    // 30분
+            setInterval(initFinance, 120000);  // 2분
         });
     </script>
 </body>
