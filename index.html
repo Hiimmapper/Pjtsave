@@ -54,7 +54,7 @@
         .hourly-card .h-icon { font-size: 2rem; margin: 5px 0; }
         .hourly-card .h-temp { font-size: 1.2rem; font-weight: 700; color: #fff; margin-top: 8px; }
 
-        /* 중단 2: 실시간 증권/환율 정보 (커스텀 UI) */
+        /* 중단 2: 실시간 증권/환율 정보 */
         .finance-container { margin-bottom: 25px; }
         .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .finance-card {
@@ -65,19 +65,21 @@
         .f-title { font-size: 0.85rem; color: #aaa; font-weight: 600; margin-bottom: 8px; }
         .f-price { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 4px; letter-spacing: -0.5px; }
         .f-change { font-size: 0.95rem; font-weight: 600; }
-        .up { color: #ff4d4d; } /* 한국식 상승 빨강 */
-        .down { color: #4d79ff; } /* 한국식 하락 파랑 */
+        .up { color: #ff4d4d; } /* 상승 빨강 */
+        .down { color: #4d79ff; } /* 하락 파랑 */
         .flat { color: #aaaaaa; }
 
-        /* 하단: 긴급 뉴스 & 경제 (로이터, 한국경제) */
+        /* 하단: 긴급 뉴스 & 경제 리스트 (꽉 채운 레이아웃) */
         .news-container { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; flex-grow: 1; }
-        .news-wrapper { position: relative; height: 100%; overflow: hidden; min-height: 60px; }
+        .news-wrapper { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
         .news-item {
-            font-size: 1.4rem; line-height: 1.5; font-weight: 600; color: #fff; word-break: keep-all; text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-            position: absolute; width: 100%; opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease, transform 0.5s ease;
+            font-size: 1.25rem; line-height: 1.4; font-weight: 600; color: #fff; word-break: keep-all; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8); display: flex; align-items: flex-start;
         }
-        .news-item.active { opacity: 1; transform: translateY(0); }
-        .news-tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.9rem; font-weight: 700; margin-right: 10px; vertical-align: middle; }
+        .news-tag { 
+            display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 700; 
+            margin-right: 12px; white-space: nowrap; margin-top: 2px;
+        }
         .tag-reuters { background-color: #ff9800; color: #000; }
         .tag-econ { background-color: #00bcd4; color: #000; }
 
@@ -101,29 +103,28 @@
     <div class="hourly-container">
         <div class="section-title">Today's Weather Flow</div>
         <div class="hourly-scroll" id="hourly-wrapper">
-            <div class="hourly-card" style="width:100%;"><span class="h-time">GPS 동의 및 데이터를 기다리는 중입니다...</span></div>
+            <div class="hourly-card" style="width:100%;"><span class="h-time">GPS 데이터 연동 중...</span></div>
         </div>
     </div>
 
     <div class="finance-container">
         <div class="section-title">Market Indicators</div>
         <div class="finance-grid" id="finance-wrapper">
+            <div class="finance-card"><span class="f-title">USD/KRW 환율</span><span class="f-price">로딩중...</span></div>
             <div class="finance-card"><span class="f-title">KOSPI</span><span class="f-price">로딩중...</span></div>
             <div class="finance-card"><span class="f-title">KOSDAQ</span><span class="f-price">로딩중...</span></div>
             <div class="finance-card"><span class="f-title">NASDAQ</span><span class="f-price">로딩중...</span></div>
-            <div class="finance-card"><span class="f-title">USD/KRW 환율</span><span class="f-price">로딩중...</span></div>
         </div>
     </div>
 
     <div class="news-container">
         <div class="section-title">Live Updates : Reuters & Economy</div>
         <div class="news-wrapper" id="news-wrapper">
-            <div class="news-item active">실시간 주요 뉴스를 불러오는 중입니다...</div>
+            <div class="news-item">뉴스를 불러오는 중입니다...</div>
         </div>
     </div>
 
     <script>
-        // 공통 유틸: 숫자 콤마 포맷
         const formatNum = (num) => parseFloat(num).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         // 1. 실시간 시계
@@ -135,33 +136,26 @@
             }, 1000);
         }
 
-        // 2. GPS 기반 지역명 + 날씨 호출 (BigDataCloud + Open-Meteo)
+        // 2. 날씨 (기존과 동일하게 정상 작동)
         function initWeather() {
             navigator.geolocation.getCurrentPosition(
                 pos => fetchWeatherData(pos.coords.latitude, pos.coords.longitude),
-                err => { 
-                    console.warn("GPS 권한 없음. 서울 강남구 기준 로드."); 
-                    document.getElementById('cur-location').innerText = "📍 서울특별시 강남구 (기본값)";
-                    fetchWeatherData(37.4979, 127.0276); 
-                },
+                err => { fetchWeatherData(37.4979, 127.0276); },
                 { enableHighAccuracy: false, maximumAge: 600000, timeout: 10000 }
             );
         }
 
         async function fetchWeatherData(lat, lon) {
             try {
-                // 내 위치 동/구 이름 가져오기 (무료 Reverse Geocoding)
                 try {
                     const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
                     const geoData = await geoRes.json();
                     if(geoData.city || geoData.locality) {
                         document.getElementById('cur-location').innerText = `📍 ${geoData.city || ''} ${geoData.locality || ''}`.trim();
                     }
-                } catch(e) { console.log("지역명 변환 실패"); }
+                } catch(e) {}
 
-                // 날씨 데이터 가져오기
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`;
-                const res = await fetch(url);
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`);
                 const data = await res.json();
                 
                 const cur = data.current_weather;
@@ -179,7 +173,6 @@
                 document.getElementById('cur-desc').innerText = desc;
                 document.body.style.backgroundImage = `url('${bgUrl}')`;
 
-                // 오늘 하루 12시간 분량 날씨 렌더링
                 const hourlyWrapper = document.getElementById('hourly-wrapper');
                 hourlyWrapper.innerHTML = '';
                 const nowHour = new Date().getHours();
@@ -209,69 +202,64 @@
                         </div>
                     `;
                 }
-            } catch (err) { console.error("날씨 로드 에러", err); }
+            } catch (err) {}
         }
 
-        // 3. 증권 및 환율 (안정적인 CodeTabs 프록시 및 무료 환율 API 직접 호출)
+        // 3. 안정적인 프록시(AllOrigins)를 통한 증권 데이터 확보
         async function initFinance() {
             try {
                 const wrapper = document.getElementById('finance-wrapper');
-                
-                // 1) 주식 지수 (Yahoo Finance API 우회)
-                let stocks = [];
-                try {
-                    const stockRes = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC')}`);
-                    const stockData = await stockRes.json();
-                    stocks = stockData.quoteResponse.result;
-                } catch(e) { console.log("주식 데이터 지연"); }
+                let html = '';
 
-                // 2) 환율 (CORS 없는 무료 직접 API)
-                let krwRate = 0;
+                // 환율 (CORS 없는 직접 API)
                 try {
                     const exRes = await fetch('https://latest.currency-api.pages.dev/v1/currencies/usd.json');
                     const exData = await exRes.json();
-                    krwRate = exData.usd.krw;
-                } catch(e) { console.log("환율 데이터 지연"); }
-
-                // HTML 생성
-                let html = '';
-                
-                // 주식 렌더링
-                stocks.forEach(item => {
-                    let name = item.symbol === '^KS11' ? 'KOSPI' : (item.symbol === '^KQ11' ? 'KOSDAQ' : 'NASDAQ');
-                    const price = item.regularMarketPrice ? formatNum(item.regularMarketPrice) : '0.00';
-                    const change = item.regularMarketChange || 0;
-                    const percent = item.regularMarketChangePercent || 0;
-                    
-                    const colorCls = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat');
-                    const sign = change > 0 ? '▲' : (change < 0 ? '▼' : '-');
-
-                    html += `
-                        <div class="finance-card">
-                            <span class="f-title">${name}</span>
-                            <span class="f-price">${price}</span>
-                            <span class="f-change ${colorCls}">${sign} ${formatNum(Math.abs(change))} (${percent.toFixed(2)}%)</span>
-                        </div>
-                    `;
-                });
-
-                // 환율 렌더링
-                if(krwRate > 0) {
                     html += `
                         <div class="finance-card">
                             <span class="f-title">USD/KRW 환율</span>
-                            <span class="f-price">${formatNum(krwRate)} ₩</span>
+                            <span class="f-price">${formatNum(exData.usd.krw)} ₩</span>
                             <span class="f-change flat">실시간 기준환율</span>
                         </div>
                     `;
+                } catch(e) { html += '<div class="finance-card">환율 오류</div>'; }
+
+                // 주식 지수 (프록시 서버 교체 적용: AllOrigins)
+                try {
+                    const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC`;
+                    const stockRes = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(stockUrl)}`);
+                    const stockData = await stockRes.json();
+                    const stocks = JSON.parse(stockData.contents).quoteResponse.result;
+
+                    stocks.forEach(item => {
+                        let name = item.symbol === '^KS11' ? 'KOSPI' : (item.symbol === '^KQ11' ? 'KOSDAQ' : 'NASDAQ');
+                        const price = item.regularMarketPrice ? formatNum(item.regularMarketPrice) : '0.00';
+                        const change = item.regularMarketChange || 0;
+                        const percent = item.regularMarketChangePercent || 0;
+                        
+                        const colorCls = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat');
+                        const sign = change > 0 ? '▲' : (change < 0 ? '▼' : '-');
+
+                        html += `
+                            <div class="finance-card">
+                                <span class="f-title">${name}</span>
+                                <span class="f-price">${price}</span>
+                                <span class="f-change ${colorCls}">${sign} ${formatNum(Math.abs(change))} (${percent.toFixed(2)}%)</span>
+                            </div>
+                        `;
+                    });
+                } catch(e) { 
+                    html += '<div class="finance-card"><span class="f-title">KOSPI</span><span class="f-price">로딩 실패</span></div>';
+                    html += '<div class="finance-card"><span class="f-title">KOSDAQ</span><span class="f-price">로딩 실패</span></div>';
+                    html += '<div class="finance-card"><span class="f-title">NASDAQ</span><span class="f-price">로딩 실패</span></div>';
                 }
                 
-                if(html !== '') wrapper.innerHTML = html;
+                wrapper.innerHTML = html;
 
             } catch (err) { console.error("금융 데이터 로드 실패", err); }
         }
 
-        // 4. 로이터 & 한국 경제 뉴스 믹스 렌더링 (가장 안정적인 rss2json 활용)
+        // 4. 뉴스를 빈칸 없이 4줄 리스트로 렌더링
         async function initNews() {
             try {
                 const reutersUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://news.google.com/rss/search?q=로이터&hl=ko&gl=KR&ceid=KR:ko')}`;
@@ -283,67 +271,32 @@
 
                 let combinedNews = [];
                 
-                // 로이터 파싱
                 if(data1.items) {
-                    data1.items.slice(0, 7).forEach(item => {
-                        combinedNews.push(`<span class="news-tag tag-reuters">로이터 통신</span> ${item.title.split(' - ')[0]}`);
+                    data1.items.slice(0, 5).forEach(item => {
+                        combinedNews.push(`<span class="news-tag tag-reuters">로이터 통신</span> <span>${item.title.split(' - ')[0]}</span>`);
                     });
                 }
-                // 한국경제 파싱
                 if(data2.items) {
-                    data2.items.slice(0, 7).forEach(item => {
-                        combinedNews.push(`<span class="news-tag tag-econ">한국 경제</span> ${item.title.split(' - ')[0]}`);
+                    data2.items.slice(0, 5).forEach(item => {
+                        combinedNews.push(`<span class="news-tag tag-econ">한국 경제</span> <span>${item.title.split(' - ')[0]}</span>`);
                     });
                 }
 
-                // 무작위 섞기 (교차 노출)
                 combinedNews.sort(() => Math.random() - 0.5);
 
                 if (combinedNews.length > 0) {
                     const wrapper = document.getElementById('news-wrapper');
                     wrapper.innerHTML = '';
-                    combinedNews.forEach((newsHtml, i) => {
-                        wrapper.innerHTML += `<div class="news-item ${i === 0 ? 'active' : ''}">${newsHtml}</div>`;
+                    // 롤링을 없애고 4개의 뉴스를 꽉 채워 배치
+                    combinedNews.slice(0, 4).forEach((newsHtml) => {
+                        wrapper.innerHTML += `<div class="news-item">${newsHtml}</div>`;
                     });
-                    startNewsRolling();
                 }
             } catch (err) { console.error("뉴스 로드 실패", err); }
         }
 
-        let newsInterval;
-        function startNewsRolling() {
-            clearInterval(newsInterval);
-            let idx = 0;
-            newsInterval = setInterval(() => {
-                const items = document.querySelectorAll('.news-item');
-                if (items.length < 2) return;
-                items[idx].classList.remove('active');
-                idx = (idx + 1) % items.length;
-                items[idx].classList.add('active');
-            }, 6000);
-        }
-
-        // 화면 번인 및 꺼짐 방지 유틸
         function initAntiBurnIn() {
             setInterval(() => {
                 const x = Math.floor(Math.random() * 5) - 2;
                 const y = Math.floor(Math.random() * 5) - 2;
-                document.body.style.transform = `translate(${x}px, ${y}px)`;
-            }, 300000);
-        }
-
-        async function wakeLock() { try { await navigator.wakeLock.request('screen'); } catch (e) {} }
-
-        // 전체 실행
-        window.onload = () => {
-            initClock(); initWeather(); initFinance(); initNews(); initAntiBurnIn();
-            document.body.addEventListener('click', wakeLock); wakeLock();
-            
-            // 주기적 업데이트
-            setInterval(initWeather, 1800000); // 날씨 30분
-            setInterval(initNews, 1800000);    // 뉴스 30분
-            setInterval(initFinance, 60000);   // 증권 1분
-        };
-    </script>
-</body>
-</html>
+                document.body.style.transform = `translate(${x}px, ${
