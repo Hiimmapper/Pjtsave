@@ -3,237 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 개인 대시보드</title>
+    <title>Personal Command Center</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* CSS 변수 및 리셋 */
         :root {
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --text-main: #111827;
-            --text-muted: #4b5563;
-            --accent: #3b82f6;
-            --border-radius: 20px;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --accent: #2563eb;
+            --radius-main: 24px;
+            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.05);
         }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Pretendard', -apple-system, sans-serif;
             color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            min-height: 100vh;
-            transition: background 1s ease-in-out;
-            background-color: #e0f2fe; 
+            align-items: flex-start;
+            padding: 40px 20px;
+            transition: background 1.5s ease;
+            /* 기본 배경: 부드러운 아침 하늘 */
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            overflow-x: hidden;
         }
         
-        /* 날씨 상태에 따른 동적 배경 */
-        body.bg-clear { background: linear-gradient(to bottom, #7dd3fc, #bae6fd); } 
-        body.bg-clouds { background: linear-gradient(to bottom, #94a3b8, #cbd5e1); } 
-        body.bg-rain { background: linear-gradient(to bottom, #475569, #94a3b8); color: #fff; } 
-        body.bg-snow { background: linear-gradient(to bottom, #e2e8f0, #f8fafc); } 
+        /* 날씨 연동 다이내믹 배경 */
+        body.bg-clear { background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%); } 
+        body.bg-clouds { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); } 
+        body.bg-rain { background: linear-gradient(135deg, #64748b 0%, #334155 100%); color: #f8fafc; } 
+        body.bg-snow { background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%); }
 
-        .container { max-width: 1200px; width: 100%; }
+        .container {
+            max-width: 1280px;
+            width: 100%;
+        }
         
+        /* 헤더 스타일링 */
         header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 32px;
+            align-items: flex-end;
+            margin-bottom: 40px;
             padding: 0 10px;
-            text-shadow: 0 1px 2px rgba(255,255,255,0.5);
         }
         
-        body.bg-rain header { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        body.bg-rain header { color: #fff; }
         
-        h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+        .header-title { display: flex; flex-direction: column; gap: 4px; }
+        .header-title h1 { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+        .header-title p { font-size: 16px; font-weight: 500; opacity: 0.8; }
         
         .time-display { text-align: right; }
-        .time-display #date { font-size: 15px; font-weight: 600; }
-        .time-display #time { font-size: 28px; font-weight: 800; letter-spacing: 1px; }
+        .time-display #date { font-size: 16px; font-weight: 600; opacity: 0.9; margin-bottom: 4px; }
+        .time-display #time { font-size: 36px; font-weight: 800; letter-spacing: 1px; line-height: 1; }
         
+        /* 그리드 시스템 개편 */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(12, 1fr);
             gap: 24px;
         }
         
+        /* 글래스모피즘 카드 공통 */
         .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            color: #111827; 
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-main);
+            padding: 28px;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            color: #1f2937; /* 비가 와도 카드는 밝은 테마 유지 */
         }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08); }
         
         .card-header {
             font-size: 18px;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            color: #111827;
         }
-        .card-header i { color: var(--accent); }
+        .card-header i { color: var(--accent); font-size: 20px; }
+
+        /* 카드 크기 할당 (12컬럼 기준) */
+        .col-span-8 { grid-column: span 8; }
+        .col-span-4 { grid-column: span 4; }
+        .col-span-6 { grid-column: span 6; }
         
-        .weather-info { 
-            display: flex; 
-            justify-content: space-around; 
+        /* 반응형 처리 */
+        @media (max-width: 1024px) {
+            .col-span-8, .col-span-6 { grid-column: span 12; }
+            .col-span-4 { grid-column: span 6; }
+        }
+        @media (max-width: 768px) {
+            .col-span-4 { grid-column: span 12; }
+            header { flex-direction: column; align-items: flex-start; gap: 20px; }
+            .time-display { text-align: left; }
+        }
+
+        /* 날씨 전용 레이아웃 */
+        .weather-wrapper {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            padding: 10px 0; 
+            height: 100%;
+            padding: 0 10px;
         }
-        .weather-main { text-align: center; }
-        .weather-icon { font-size: 45px; margin-bottom: 8px; }
-        .temp { font-size: 28px; font-weight: 800; }
-        .weather-desc { color: var(--text-muted); font-size: 14px; font-weight: 600; }
-        
-        .news-item, .list-item {
-            display: block;
-            padding: 12px 0;
-            border-bottom: 1px solid #e5e7eb;
-            color: #1f2937;
+        .weather-main { display: flex; align-items: center; gap: 20px; }
+        .w-icon-large { font-size: 64px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .w-temp-info { display: flex; flex-direction: column; }
+        .w-current { font-size: 42px; font-weight: 800; line-height: 1; }
+        .w-desc { font-size: 16px; font-weight: 600; color: var(--text-muted); margin-top: 6px; }
+        .w-sub { text-align: right; }
+        .w-sub-label { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
+        .w-minmax { font-size: 22px; font-weight: 700; }
+
+        /* 뉴스 및 할일 리스트 스타일 */
+        .list-container { flex-grow: 1; display: flex; flex-direction: column; gap: 16px; }
+        .list-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
             text-decoration: none;
+            color: #1f2937;
             font-size: 15px;
             line-height: 1.5;
+            transition: all 0.2s;
         }
-        .news-item:last-child, .list-item:last-child { border-bottom: none; }
-        .news-item:hover { color: var(--accent); font-weight: 600; }
+        .news-link:hover {
+            background: #fff;
+            color: var(--accent);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .task-item i { color: #10b981; margin-top: 3px; font-size: 16px; }
         
+        /* 위젯 래퍼 */
+        .widget-wrapper { margin: -10px -28px -28px -28px; border-bottom-left-radius: var(--radius-main); border-bottom-right-radius: var(--radius-main); overflow: hidden; }
+        
+        /* ISDRAM 행 */
         .isdram-row {
-            display: flex; justify-content: space-between; 
-            padding: 12px 16px; margin-top: 10px;
-            background: #f8fafc; border-radius: 8px;
-            font-weight: 600; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 28px; margin: 0 -28px -28px -28px;
+            background: rgba(243, 244, 246, 0.8);
+            border-bottom-left-radius: var(--radius-main); border-bottom-right-radius: var(--radius-main);
+            border-top: 1px solid rgba(0,0,0,0.05);
+            font-weight: 700; font-size: 15px;
         }
     </style>
 </head>
 <body class="bg-clear">
     <div class="container">
         <header>
-            <h1>오늘의 대시보드 🚀</h1>
+            <div class="header-title">
+                <h1>Command Center</h1>
+                <p>오늘 하루도 완벽하게 제어하세요.</p>
+            </div>
             <div class="time-display">
                 <div id="date">로딩 중...</div>
-                <div id="time">--:--:--</div>
+                <div id="time">--:--</div>
             </div>
         </header>
 
         <div class="grid">
-            <div class="card" style="padding: 0; overflow: hidden;">
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-                    {
-                        "colorTheme": "light",
-                        "dateRange": "1D",
-                        "showChart": false,
-                        "locale": "kr",
-                        "width": "100%",
-                        "height": "280",
-                        "isTransparent": true,
-                        "showSymbolLogo": true,
-                        "showFloatingTooltip": true,
-                        "tabs": [
+            
+            <div class="card col-span-8" style="padding-bottom: 0;">
+                <div class="card-header"><i class="fa-solid fa-chart-line"></i> 글로벌 마켓 동향</div>
+                <div class="widget-wrapper">
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
                         {
-                            "title": "주가지수",
-                            "symbols": [
-                                { "s": "KRX:KOSPI", "d": "코스피" },
-                                { "s": "KRX:KOSDAQ", "d": "코스닥" },
-                                { "s": "AMEX:DIA", "d": "다우존스" },
-                                { "s": "AMEX:SPY", "d": "S&P 500" },
-                                { "s": "NASDAQ:QQQ", "d": "나스닥 100" }
+                            "colorTheme": "light",
+                            "dateRange": "1D",
+                            "showChart": false,
+                            "locale": "kr",
+                            "width": "100%",
+                            "height": "250",
+                            "isTransparent": true,
+                            "showSymbolLogo": true,
+                            "showFloatingTooltip": true,
+                            "tabs": [
+                            {
+                                "title": "주요 지수 ETF",
+                                "symbols": [
+                                    { "s": "AMEX:SPY", "d": "S&P 500" },
+                                    { "s": "NASDAQ:QQQ", "d": "나스닥 100" },
+                                    { "s": "AMEX:DIA", "d": "다우존스" },
+                                    { "s": "KRX:102110", "d": "TIGER 200 (코스피)" },
+                                    { "s": "KRX:232080", "d": "TIGER 코스닥150" }
+                                ]
+                            }
                             ]
                         }
-                        ]
-                    }
-                    </script>
-                </div>
-            </div>
-
-            <div class="card" style="padding: 0; overflow: hidden; position: relative;">
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-                    {
-                        "colorTheme": "light",
-                        "dateRange": "1D",
-                        "showChart": false,
-                        "locale": "kr",
-                        "width": "100%",
-                        "height": "230",
-                        "isTransparent": true,
-                        "showSymbolLogo": true,
-                        "showFloatingTooltip": true,
-                        "tabs": [
-                        {
-                            "title": "환율",
-                            "symbols": [
-                                { "s": "FX_IDC:USDKRW", "d": "원/달러" },
-                                { "s": "FX_IDC:JPYKRW", "d": "원/엔 (100엔)" },
-                                { "s": "FX_IDC:CNYKRW", "d": "원/위안" }
-                            ]
-                        }
-                        ]
-                    }
-                    </script>
-                </div>
-                <div style="padding: 0 16px 16px 16px;">
-                    <div class="isdram-row">
-                        <span><i class="fa-solid fa-microchip" style="color:var(--accent);"></i> ISDRAM 지수</span>
-                        <span style="color:#ef4444;">1,425.80 (+2.45%)</span>
+                        </script>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header"><i class="fa-solid fa-cloud-sun"></i> 실시간 날씨 (부산)</div>
-                <div class="weather-info" id="weather-container">
+            <div class="card col-span-4">
+                <div class="card-header"><i class="fa-solid fa-location-dot"></i> 부산 실시간 날씨</div>
+                <div class="weather-wrapper" id="weather-container">
                     <div class="weather-main">
-                        <div class="weather-desc">현재 날씨</div>
-                        <div class="weather-icon" id="w-icon-now">⏳</div>
-                        <div class="temp" id="w-temp-now">--°C</div>
+                        <div class="w-icon-large" id="w-icon-now">⏳</div>
+                        <div class="w-temp-info">
+                            <div class="w-current" id="w-temp-now">--°</div>
+                            <div class="w-desc" id="w-desc-now">정보 확인 중</div>
+                        </div>
                     </div>
-                    <div class="weather-main">
-                        <div class="weather-desc">오늘 최고/최저</div>
-                        <div class="weather-icon">🌡️</div>
-                        <div class="temp" id="w-temp-maxmin" style="font-size: 20px; margin-top:15px;">--° / --°</div>
+                    <div class="w-sub">
+                        <div class="w-sub-label">최고 / 최저</div>
+                        <div class="w-minmax" id="w-temp-maxmin">--° / --°</div>
                     </div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header"><i class="fa-regular fa-newspaper"></i> 실시간 주요 뉴스</div>
-                <div id="news-data">
+            <div class="card col-span-6">
+                <div class="card-header"><i class="fa-regular fa-newspaper"></i> 실시간 주요 경제/금융 뉴스</div>
+                <div class="list-container" id="news-data">
                     <div class="list-item">뉴스를 불러오는 중입니다...</div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header"><i class="fa-regular fa-calendar-check"></i> 오늘의 할 일</div>
-                <div id="todo-data">
-                    <div class="list-item"><i class="fa-solid fa-check" style="color:var(--accent);"></i> 오전 10:00 - 주간 업무 보고 회의 참석</div>
-                    <div class="list-item"><i class="fa-solid fa-check" style="color:var(--accent);"></i> 오후 02:00 - 신규 프로젝트 킥오프 미팅</div>
-                    <div class="list-item"><i class="fa-solid fa-check" style="color:var(--accent);"></i> 오후 06:30 - 헬스장 (하체 운동)</div>
+            <div class="card col-span-6" style="padding-bottom: 0;">
+                <div class="card-header"><i class="fa-solid fa-coins"></i> 환율 및 글로벌 지표</div>
+                <div class="widget-wrapper" style="margin-bottom: 0;">
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+                        {
+                            "colorTheme": "light",
+                            "dateRange": "1D",
+                            "showChart": false,
+                            "locale": "kr",
+                            "width": "100%",
+                            "height": "190",
+                            "isTransparent": true,
+                            "showSymbolLogo": true,
+                            "showFloatingTooltip": true,
+                            "tabs": [
+                            {
+                                "title": "주요 환율",
+                                "symbols": [
+                                    { "s": "FX_IDC:USDKRW", "d": "USD / KRW" },
+                                    { "s": "FX_IDC:JPYKRW", "d": "JPY / KRW (100엔)" },
+                                    { "s": "FX_IDC:CNYKRW", "d": "CNY / KRW" }
+                                ]
+                            }
+                            ]
+                        }
+                        </script>
+                    </div>
+                </div>
+                <div class="isdram-row">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-microchip" style="color:var(--accent);"></i> ISDRAM Index
+                    </span>
+                    <span style="color:#ef4444; font-family: monospace; font-size: 16px;">1,425.80 (+2.45%)</span>
                 </div>
             </div>
+
         </div>
     </div>
 
     <script>
-        // 1. 실시간 시계
+        // 1. 실시간 시계 (초 단위 제거, 깔끔함 유지)
         function updateTime() {
             const now = new Date();
             const days = ['일', '월', '화', '수', '목', '금', '토'];
             document.getElementById('date').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
             let hours = now.getHours();
-            const ampm = hours >= 12 ? '오후' : '오전';
+            const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12 || 12;
-            document.getElementById('time').innerText = `${ampm} ${hours}:${String(now.getMinutes()).padStart(2, '0')}`;
+            document.getElementById('time').innerText = `${hours}:${String(now.getMinutes()).padStart(2, '0')} ${ampm}`;
         }
         setInterval(updateTime, 1000);
         updateTime();
 
-        // 2. 실시간 날씨 (부산 기준)
+        // 2. 날씨 API 연동
         async function fetchWeather() {
             try {
                 const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.1796&longitude=129.0756&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul');
@@ -244,31 +307,31 @@
                 const maxTemp = Math.round(data.daily.temperature_2m_max[0]);
                 const minTemp = Math.round(data.daily.temperature_2m_min[0]);
                 
-                let icon = '☁️'; let bgClass = 'bg-clouds';
+                let icon = '☁️'; let desc = '흐림'; let bgClass = 'bg-clouds';
 
-                if (code === 0 || code === 1) { icon = '☀️'; bgClass = 'bg-clear'; }
-                else if (code === 2 || code === 3) { icon = '⛅'; bgClass = 'bg-clouds'; }
-                else if (code >= 45 && code <= 48) { icon = '🌫️'; bgClass = 'bg-clouds'; }
-                else if (code >= 51 && code <= 67 || code >= 80 && code <= 82) { icon = '🌧️'; bgClass = 'bg-rain'; }
-                else if (code >= 71 && code <= 77 || code >= 85 && code <= 86) { icon = '❄️'; bgClass = 'bg-snow'; }
-                else if (code >= 95) { icon = '⛈️'; bgClass = 'bg-rain'; }
+                if (code === 0 || code === 1) { icon = '☀️'; desc = '맑음'; bgClass = 'bg-clear'; }
+                else if (code === 2 || code === 3) { icon = '⛅'; desc = '구름 조금'; bgClass = 'bg-clouds'; }
+                else if (code >= 45 && code <= 48) { icon = '🌫️'; desc = '안개'; bgClass = 'bg-clouds'; }
+                else if (code >= 51 && code <= 67 || code >= 80 && code <= 82) { icon = '🌧️'; desc = '비'; bgClass = 'bg-rain'; }
+                else if (code >= 71 && code <= 77 || code >= 85 && code <= 86) { icon = '❄️'; desc = '눈'; bgClass = 'bg-snow'; }
+                else if (code >= 95) { icon = '⛈️'; desc = '뇌우'; bgClass = 'bg-rain'; }
 
-                document.getElementById('w-temp-now').innerText = `${currentTemp}°C`;
+                document.getElementById('w-temp-now').innerText = `${currentTemp}°`;
                 document.getElementById('w-icon-now').innerText = icon;
+                document.getElementById('w-desc-now').innerText = desc;
                 document.getElementById('w-temp-maxmin').innerText = `${maxTemp}° / ${minTemp}°`;
                 
                 document.body.className = bgClass;
             } catch (error) {
-                console.error("날씨 로드 오류:", error);
+                console.error("날씨 로드 오류");
             }
         }
         fetchWeather();
         setInterval(fetchWeather, 600000); 
 
-        // 3. 주요 경제 뉴스 (매일경제 RSS - CORS 우회 없이 rss2json 활용)
+        // 3. 주요 뉴스 연동 (안정적인 매일경제 RSS)
         async function fetchNews() {
             try {
-                // 매일경제 경제/금융 섹션 RSS 피드
                 const rssUrl = 'https://www.mk.co.kr/rss/30000001/';
                 const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
                 
@@ -277,21 +340,19 @@
                 
                 if(data.status === 'ok') {
                     let newsHtml = '';
-                    // 최신 기사 4개
                     for(let i=0; i<4; i++) {
                         if(data.items[i]) {
-                            newsHtml += `<a href="${data.items[i].link}" target="_blank" class="news-item">📰 ${data.items[i].title}</a>`;
+                            newsHtml += `
+                            <a href="${data.items[i].link}" target="_blank" class="list-item news-link">
+                                <span style="font-size:18px;">📰</span>
+                                <span>${data.items[i].title}</span>
+                            </a>`;
                         }
                     }
                     document.getElementById('news-data').innerHTML = newsHtml;
-                } else {
-                    throw new Error("RSS 변환 실패");
                 }
             } catch (error) {
-                document.getElementById('news-data').innerHTML = `
-                    <div class="list-item">뉴스를 불러오지 못했습니다.</div>
-                    <a href="https://news.naver.com/main/main.naver?mode=LSD&mid=shm&sid1=101" target="_blank" class="news-item" style="color: var(--accent); text-align: center; font-weight: bold;">👉 네이버 경제 뉴스 바로가기</a>
-                `;
+                document.getElementById('news-data').innerHTML = '<div class="list-item">뉴스를 불러오지 못했습니다.</div>';
             }
         }
         fetchNews();
