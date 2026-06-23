@@ -3,356 +3,551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ultimate Ambient Dashboard</title>
+    <title>Premium Ambient Dashboard</title>
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            color: #EAEAEA;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            min-height: 100vh; overflow-y: auto; overflow-x: hidden;
-            display: flex; flex-direction: column; gap: 20px; padding: 30px;
-            background-color: #050505; background-attachment: fixed; background-size: cover; background-position: center;
-            transition: background-image 1s ease-in-out; scrollbar-width: none;
+        /* ==========================================================================
+           1. Design System & CSS Variables
+           ========================================================================== */
+        :root {
+            --bg-color: #050505;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8E8E93;
+            --text-tertiary: #636366;
+            
+            /* Global Finance Standard Colors (Bloomberg style) */
+            --color-up: #34C759; /* Green */
+            --color-down: #FF3B30; /* Red */
+            --color-flat: #8E8E93;
+
+            /* Glassmorphism Elements */
+            --glass-bg: rgba(28, 28, 30, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 8px;
+
+            --font-en: 'Inter', sans-serif;
+            --font-kr: 'Pretendard Variable', -apple-system, sans-serif;
         }
-        body::-webkit-scrollbar { display: none; }
 
-        /* 하이퍼링크 기본 스타일 초기화 */
-        a { text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-kr);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'); /* 추상적인 프리미엄 배경 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            /* 부드러운 배경 전환 */
+            transition: background-image 1.5s ease-in-out;
+        }
+
+        /* 가독성을 위한 다크 오버레이 */
         .overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.9) 100%); z-index: -1;
+            background: radial-gradient(circle at top right, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.85) 80%);
+            z-index: -1;
         }
 
-        /* 1. 상단: 시계 & 날씨 */
-        .header-container {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 20px;
+        /* ==========================================================================
+           2. Layout & 12-Column Grid System
+           ========================================================================== */
+        .dashboard-container {
+            max-width: 2400px; /* 4K 모니터 대응 */
+            margin: 0 auto;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
         }
-        .time-box { display: flex; align-items: baseline; gap: 15px; flex-wrap: wrap; }
-        /* 시간 폰트 크기 대폭 확대 (5rem -> 7rem) */
-        .time-box h1 { font-size: 7rem; font-weight: 800; letter-spacing: -3px; line-height: 1; color: #fff; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .time-box p { font-size: 2rem; color: #ddd; font-weight: 700; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+
+        /* Glassmorphism Card Base */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-family: var(--font-en); font-size: 0.85rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .last-updated { font-size: 0.75rem; color: var(--text-tertiary); font-family: var(--font-en); }
+
+        /* ==========================================================================
+           3. Modules Styling
+           ========================================================================== */
         
-        .weather-box { text-align: right; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .weather-box .location { font-size: 1.1rem; color: #00e676; font-weight: 600; margin-bottom: 5px; display: flex; justify-content: flex-end; align-items: center; gap: 5px; }
-        .weather-box .temp { font-size: 3.5rem; font-weight: 300; color: #fff; line-height: 1; }
-        .weather-box .desc { font-size: 1rem; color: #ddd; margin-top: 5px; font-weight: 500; }
+        /* Header (Top Level - Spans 12 cols) */
+        .header-panel { grid-column: span 12; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); margin-bottom: 10px;}
+        .datetime-group { display: flex; flex-direction: column; gap: 4px; }
+        .time { font-family: var(--font-en); font-size: 4.5rem; font-weight: 700; letter-spacing: -2px; line-height: 1; } /* 35% 축소된 시계 */
+        .date { font-size: 1.4rem; color: var(--text-secondary); font-weight: 500; }
+        
+        .current-weather { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .location { font-size: 1.1rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .location::before { content: ''; display: inline-block; width: 8px; height: 8px; background: #0A84FF; border-radius: 50%; box-shadow: 0 0 10px #0A84FF; }
+        .temp-group { display: flex; align-items: baseline; gap: 12px; }
+        .temp { font-family: var(--font-en); font-size: 4rem; font-weight: 300; line-height: 1; }
+        .desc { font-size: 1.2rem; font-weight: 500; }
 
-        /* 중단 1: 3시간 단위 날씨 */
-        .hourly-container { margin: 15px 0; }
-        .section-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #aaa; margin-bottom: 12px; font-weight: 700; }
-        .hourly-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px; scrollbar-width: none; }
+        /* Weather 24H (Spans 8 cols) */
+        .weather-panel { grid-column: span 8; }
+        .hourly-scroll {
+            display: flex; overflow-x: auto; gap: 16px; padding-bottom: 10px; scrollbar-width: none;
+        }
         .hourly-scroll::-webkit-scrollbar { display: none; }
-        .hourly-card {
-            min-width: 85px; background: rgba(20, 20, 20, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px); border-radius: 16px; padding: 18px 10px;
-            display: flex; flex-direction: column; align-items: center; text-align: center;
+        .hourly-item {
+            min-width: 80px; display: flex; flex-direction: column; align-items: center; gap: 12px;
+            padding: 16px 12px; border-radius: var(--radius-md); background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);
         }
-        .hourly-card .h-time { font-size: 0.9rem; color: #ccc; margin-bottom: 8px; font-weight: 500; }
-        .hourly-card .h-icon { font-size: 2rem; margin: 5px 0; }
-        .hourly-card .h-temp { font-size: 1.2rem; font-weight: 700; color: #fff; margin-top: 8px; }
+        .h-time { font-family: var(--font-en); font-size: 0.9rem; color: var(--text-secondary); }
+        .h-icon { font-size: 2rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
+        .h-temp { font-family: var(--font-en); font-size: 1.25rem; font-weight: 600; }
 
-        /* 중단 2: 실시간 증권/환율 정보 */
-        .finance-container { margin-bottom: 15px; }
-        .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        
-        /* 증권 카드 터치 시 효과 추가 */
-        .finance-card {
-            background: rgba(10, 10, 10, 0.7); border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(5px); border-radius: 12px; padding: 15px;
-            display: flex; flex-direction: column; justify-content: center; min-height: 110px;
-            transition: background 0.2s ease, transform 0.1s ease;
-            cursor: pointer; /* 클릭 가능한 UI 표시 */
+        /* Finance (Spans 8 cols) */
+        .finance-panel { grid-column: span 8; }
+        .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .finance-item {
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-md); padding: 20px;
+            display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; transition: background 0.2s;
         }
-        .finance-card:active { transform: scale(0.98); background: rgba(30, 30, 30, 0.8); }
-        .finance-card:hover { border-color: rgba(255, 255, 255, 0.3); }
+        .finance-item:hover { background: rgba(255,255,255,0.05); }
+        .f-name { font-family: var(--font-en); font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; display: flex; justify-content: space-between; }
+        .f-name::after { content: '↗'; opacity: 0.3; }
+        .f-price { font-family: var(--font-en); font-size: 1.7rem; font-weight: 700; letter-spacing: -0.5px; }
+        .f-change-group { font-family: var(--font-en); font-size: 1rem; font-weight: 600; display: flex; gap: 6px; align-items: center;}
         
-        .f-title { font-size: 0.85rem; color: #aaa; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-        .f-title::after { content: '↗'; font-size: 0.8rem; color: #666; } /* 링크 아이콘 */
-        .f-price { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 4px; letter-spacing: -0.5px; }
-        .f-change { font-size: 0.95rem; font-weight: 600; }
-        .up { color: #ff4d4d; } .down { color: #4d79ff; } .flat { color: #aaaaaa; }
+        .up { color: var(--color-up); }
+        .down { color: var(--color-down); }
+        .flat { color: var(--color-flat); }
+        
+        /* LIVE Badge */
+        .live-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,59,48,0.15); color: var(--color-down); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; }
+        .live-dot { width: 6px; height: 6px; background: var(--color-down); border-radius: 50%; animation: pulse 1.5s infinite; }
 
-        /* 하단: 뉴스 리스트 */
-        .news-container { border-top: 1px solid rgba(255, 255, 255, 0.15); padding-top: 20px; padding-bottom: 30px; flex-grow: 1; }
-        .news-wrapper { display: flex; flex-direction: column; gap: 14px; margin-top: 15px; }
+        /* News (Spans 4 cols, row span 2 to fill right side) */
+        .news-panel { grid-column: span 4; grid-row: span 2; display: flex; flex-direction: column; }
+        .news-list { display: flex; flex-direction: column; gap: 16px; flex-grow: 1; overflow-y: auto; scrollbar-width: none; }
         
-        /* 뉴스 터치 시 효과 추가 */
-        .news-item {
-            font-size: 1.25rem; line-height: 1.4; font-weight: 600; color: #fff; word-break: keep-all; 
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8); display: flex; align-items: flex-start;
-            transition: color 0.2s ease; cursor: pointer;
+        /* Main Headline (Hero) */
+        .news-hero {
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.2) 100%);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 24px;
+            margin-bottom: 8px; text-decoration: none; color: inherit; display: block; transition: transform 0.2s;
         }
-        .news-item:active { color: #aaa; }
-        .news-item:hover { text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); text-underline-offset: 4px; }
-        
-        .news-tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 700; margin-right: 12px; white-space: nowrap; margin-top: 2px; text-shadow: none; }
-        .tag-sbs { background-color: #00bcd4; color: #000; }
-        .tag-hk { background-color: #ff9800; color: #000; }
+        .news-hero:hover { transform: scale(0.98); border-color: rgba(255,255,255,0.2); }
+        .hero-tag { display: inline-block; background: var(--text-primary); color: var(--bg-color); font-weight: 700; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; margin-bottom: 12px; }
+        .hero-title { font-size: 1.5rem; font-weight: 700; line-height: 1.4; word-break: keep-all; }
 
+        /* Sub News */
+        .news-sub {
+            display: flex; gap: 12px; align-items: flex-start; text-decoration: none; color: inherit;
+            padding: 12px; border-radius: var(--radius-sm); transition: background 0.2s;
+        }
+        .news-sub:hover { background: rgba(255,255,255,0.05); }
+        .sub-bullet { color: var(--text-secondary); font-size: 1.2rem; line-height: 1; }
+        .sub-title { font-size: 1.1rem; font-weight: 500; line-height: 1.4; color: var(--text-secondary); transition: color 0.2s; }
+        .news-sub:hover .sub-title { color: var(--text-primary); }
+
+        /* ==========================================================================
+           4. Animations & Skeleton Loading
+           ========================================================================== */
+        @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,59,48, 0.4); } 70% { opacity: 0.4; box-shadow: 0 0 0 6px rgba(255,59,48, 0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,59,48, 0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        /* Skeleton UI */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%; animation: skeletonLoading 1.5s infinite; border-radius: 4px; color: transparent !important; user-select: none;
+        }
+        .skeleton * { visibility: hidden; }
+        @keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ==========================================================================
+           5. Responsive Design (Desktop, Tablet, Mobile)
+           ========================================================================== */
+        @media (max-width: 1400px) {
+            .time { font-size: 3.8rem; }
+            .temp { font-size: 3.2rem; }
+            .finance-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 1024px) {
+            .weather-panel, .finance-panel, .news-panel { grid-column: span 12; }
+            .news-panel { grid-row: auto; }
+            .finance-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .dashboard-container { padding: 20px; gap: 16px; }
+            .header-panel { flex-direction: column; align-items: flex-start; gap: 20px; padding-bottom: 20px;}
+            .current-weather { text-align: left; align-items: flex-start; }
+            .finance-grid { grid-template-columns: repeat(2, 1fr); }
+            .glass-card { padding: 20px; }
+        }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
 
-    <div class="header-container">
-        <div class="time-box">
-            <h1 id="txt-time">00:00</h1>
-            <p id="txt-date">시간 연동 중...</p>
-        </div>
-        <div class="weather-box">
-            <div class="location" id="cur-location">📍 위치 탐색 중...</div>
-            <div class="temp" id="cur-temp">--°</div>
-            <div class="desc" id="cur-desc">날씨 연동 중...</div>
-        </div>
-    </div>
+    <main class="dashboard-container">
+        <header class="header-panel fade-in">
+            <div class="datetime-group">
+                <h1 class="time" id="clock-time">00:00</h1>
+                <p class="date" id="clock-date">Loading date...</p>
+            </div>
+            <div class="current-weather">
+                <div class="location" id="loc-name">Location</div>
+                <div class="temp-group">
+                    <span class="temp skeleton" id="cur-temp">00°</span>
+                    <span class="desc skeleton" id="cur-desc">Loading</span>
+                </div>
+            </div>
+        </header>
 
-    <div class="hourly-container">
-        <div class="section-title">24-Hour Weather Flow</div>
-        <div class="hourly-scroll" id="hourly-wrapper">
-            <div class="hourly-card" style="width:100%;"><span class="h-time">날씨 데이터 연동 중...</span></div>
-        </div>
-    </div>
+        <section class="glass-card weather-panel fade-in" style="animation-delay: 0.1s;">
+            <div class="section-header">
+                <div class="section-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                    24-Hour Forecast
+                </div>
+                <div class="last-updated" id="upd-weather">Updated: --:--</div>
+            </div>
+            <div class="hourly-scroll" id="hourly-container">
+                </div>
+        </section>
 
-    <div class="finance-container">
-        <div class="section-title">Market Indicators (Touch to open Google Finance)</div>
-        <div class="finance-grid">
-            <a href="https://www.google.com/finance/quote/USD-KRW" target="_blank" class="finance-card">
-                <span class="f-title">USD/KRW 환율</span>
-                <span class="f-price" id="val-usd">데이터 로딩중...</span>
-                <span class="f-change flat">- 실시간 기준환율</span>
-            </a>
-            <a href="https://www.google.com/finance/quote/KOSPI:KRX" target="_blank" class="finance-card">
-                <span class="f-title">KOSPI</span>
-                <span class="f-price" id="val-kospi">데이터 로딩중...</span>
-                <span class="f-change" id="change-kospi">잠시만 기다려주세요</span>
-            </a>
-            <a href="https://www.google.com/finance/quote/KOSDAQ:KRX" target="_blank" class="finance-card">
-                <span class="f-title">KOSDAQ</span>
-                <span class="f-price" id="val-kosdaq">데이터 로딩중...</span>
-                <span class="f-change" id="change-kosdaq">잠시만 기다려주세요</span>
-            </a>
-            <a href="https://www.google.com/finance/quote/IXIC:INDEXNASDAQ" target="_blank" class="finance-card">
-                <span class="f-title">NASDAQ</span>
-                <span class="f-price" id="val-nasdaq">데이터 로딩중...</span>
-                <span class="f-change" id="change-nasdaq">잠시만 기다려주세요</span>
-            </a>
-        </div>
-    </div>
+        <section class="glass-card news-panel fade-in" style="animation-delay: 0.2s;">
+            <div class="section-header">
+                <div class="section-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9.5L18.5 7"/></svg>
+                    Top Stories
+                </div>
+                <div class="last-updated" id="upd-news">Updated: --:--</div>
+            </div>
+            
+            <div id="news-container" class="news-list">
+                </div>
+        </section>
 
-    <div class="news-container">
-        <div class="section-title">Live Updates : Economy News (Touch to read)</div>
-        <div class="news-wrapper" id="news-wrapper">
-            <div class="news-item">뉴스를 불러오는 중입니다...</div>
-        </div>
-    </div>
+        <section class="glass-card finance-panel fade-in" style="animation-delay: 0.3s;">
+            <div class="section-header">
+                <div class="section-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Markets Overview
+                </div>
+                <div class="live-badge">
+                    <span class="live-dot"></span> LIVE
+                </div>
+            </div>
+            <div class="finance-grid" id="finance-container">
+                </div>
+        </section>
+    </main>
 
     <script>
-        const formatNum = (num) => parseFloat(num).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-        // 1. 시계
-        function initClock() {
-            const update = () => {
-                const now = new Date();
-                document.getElementById('txt-time').innerText = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
-                document.getElementById('txt-date').innerText = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-            };
-            update();
-            setInterval(update, 1000);
-        }
-
-        // 2. 날씨 (3시간 단위 렌더링 유지)
-        function initWeather() {
-            if (!navigator.geolocation) {
-                fetchWeatherData(35.1796, 129.0756); 
-                return;
+        /**
+         * 2026 Premium Dashboard Logic
+         * - Object-Oriented Architecture
+         * - Memory Leak Prevention
+         * - Fallback Proxies for Data Stability
+         */
+        class Dashboard {
+            constructor() {
+                this.format = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                this.initUI();
+                this.bindEvents();
+                this.startEngine();
             }
-            navigator.geolocation.getCurrentPosition(
-                pos => fetchWeatherData(pos.coords.latitude, pos.coords.longitude),
-                err => { fetchWeatherData(35.1796, 129.0756); },
-                { enableHighAccuracy: false, maximumAge: 600000, timeout: 5000 }
-            );
-        }
 
-        async function fetchWeatherData(lat, lon) {
-            try {
-                try {
-                    const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
-                    const geoData = await geoRes.json();
-                    document.getElementById('cur-location').innerText = `📍 ${geoData.city || ''} ${geoData.locality || '대한민국'}`.trim();
-                } catch(e) { document.getElementById('cur-location').innerText = '📍 위치 파악 불가'; }
-
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`);
-                const data = await res.json();
-                
-                const cur = data.current_weather;
-                document.getElementById('cur-temp').innerText = `${Math.round(cur.temperature)}°`;
-                
-                let icon = "☀️", desc = "맑음", bgUrl = "https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=1920&auto=format&fit=crop";
-                const code = cur.weathercode;
-                
-                if (code > 0 && code <= 3) { icon = "⛅"; desc = "구름조금"; }
-                else if (code >= 45 && code <= 48) { icon = "🌫️"; desc = "안개"; bgUrl = "https://images.unsplash.com/photo-1485236715568-ddc5ee6ca227?q=80&w=1920&auto=format&fit=crop"; }
-                else if (code >= 51 && code <= 69) { icon = "🌧️"; desc = "비"; bgUrl = "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=1920&auto=format&fit=crop"; }
-                else if (code >= 71 && code <= 79) { icon = "❄️"; desc = "눈"; bgUrl = "https://images.unsplash.com/photo-1491002052546-bf38f186af56?q=80&w=1920&auto=format&fit=crop"; }
-                else if (code >= 80) { icon = "⛈️"; desc = "흐림/천둥"; bgUrl = "https://images.unsplash.com/photo-1534088568595-a066f410cbda?q=80&w=1920&auto=format&fit=crop"; }
-
-                document.getElementById('cur-desc').innerText = desc;
-                document.body.style.backgroundImage = `url('${bgUrl}')`;
-
-                const hourlyWrapper = document.getElementById('hourly-wrapper');
-                hourlyWrapper.innerHTML = '';
-                const nowHour = new Date().getHours();
-                let startIndex = data.hourly.time.findIndex(t => new Date(t).getHours() === nowHour && new Date(t) >= new Date().setHours(0,0,0,0));
-                if(startIndex === -1) startIndex = 0;
-
-                for (let i = startIndex; i < startIndex + 24; i += 3) {
-                    if (!data.hourly.time[i]) break;
-                    const tDate = new Date(data.hourly.time[i]);
-                    const ampm = tDate.getHours() >= 12 ? '오후' : '오전';
-                    const hr = tDate.getHours() % 12 || 12;
-                    const hTemp = Math.round(data.hourly.temperature_2m[i]);
-                    const hCode = data.hourly.weathercode[i];
-                    
-                    let hIcon = "☀️";
-                    if (hCode > 0 && hCode <= 3) hIcon = "⛅";
-                    else if (hCode >= 45 && hCode <= 48) hIcon = "🌫️";
-                    else if (hCode >= 51 && hCode <= 69) hIcon = "🌧️";
-                    else if (hCode >= 71 && hCode <= 79) hIcon = "❄️";
-                    else if (hCode >= 80) hIcon = "⛈️";
-
-                    hourlyWrapper.innerHTML += `<div class="hourly-card"><span class="h-time">${ampm} ${hr}시</span><span class="h-icon">${hIcon}</span><span class="h-temp">${hTemp}°</span></div>`;
-                }
-            } catch (err) { document.getElementById('cur-desc').innerText = "날씨 정보 수신 지연"; }
-        }
-
-        // 3. 증권 정보 (안전한 우회 Fallback 유지)
-        async function fetchWithFallback(url) {
-            const encodedUrl = encodeURIComponent(url);
-            const proxies = [
-                `https://api.allorigins.win/raw?url=${encodedUrl}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodedUrl}`,
-                `https://corsproxy.io/?${url}`
-            ];
-            for (let proxy of proxies) {
-                try {
-                    const res = await fetch(proxy, { cache: 'no-store' });
-                    if (res.ok) return await res.json();
-                } catch (e) { }
+            initUI() {
+                // Initialize skeleton loaders
+                this.renderWeatherSkeletons();
+                this.renderFinanceSkeletons();
+                this.renderNewsSkeletons();
             }
-            throw new Error("All proxies failed.");
-        }
 
-        async function initFinance() {
-            try {
-                const exRes = await fetch('https://open.er-api.com/v6/latest/USD');
-                const exData = await exRes.json();
-                document.getElementById('val-usd').innerText = formatNum(exData.rates.KRW) + ' ₩';
-            } catch(e) { document.getElementById('val-usd').innerText = "지연됨"; }
-
-            try {
-                const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC&t=${Date.now()}`;
-                const data = await fetchWithFallback(stockUrl);
-                const stocks = data.quoteResponse.result;
-
-                stocks.forEach(item => {
-                    const price = item.regularMarketPrice ? formatNum(item.regularMarketPrice) : '0.00';
-                    const change = item.regularMarketChange || 0;
-                    const percent = item.regularMarketChangePercent || 0;
-                    const colorCls = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat');
-                    const sign = change > 0 ? '▲' : (change < 0 ? '▼' : '-');
-                    const changeHtml = `<span class="${colorCls}">${sign} ${formatNum(Math.abs(change))} (${percent.toFixed(2)}%)</span>`;
-
-                    if(item.symbol === '^KS11') {
-                        document.getElementById('val-kospi').innerText = price;
-                        document.getElementById('change-kospi').innerHTML = changeHtml;
-                    }
-                    if(item.symbol === '^KQ11') {
-                        document.getElementById('val-kosdaq').innerText = price;
-                        document.getElementById('change-kosdaq').innerHTML = changeHtml;
-                    }
-                    if(item.symbol === '^IXIC') {
-                        document.getElementById('val-nasdaq').innerText = price;
-                        document.getElementById('change-nasdaq').innerHTML = changeHtml;
-                    }
-                });
-            } catch(e) {
-                document.getElementById('val-kospi').innerText = "일시 지연";
-                document.getElementById('val-kosdaq').innerText = "일시 지연";
-                document.getElementById('val-nasdaq').innerText = "일시 지연";
+            bindEvents() {
+                // Keep screen awake
+                document.body.addEventListener('click', () => this.requestWakeLock(), { once: true });
             }
-        }
 
-        // 4. 뉴스 (기사 제목에 해당 원문 하이퍼링크 <a> 태그 추가)
-        async function initNews() {
-            try {
-                const sbsUrl = 'https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=02&plink=RSSREADER';
-                const hkUrl = 'https://rss.hankyung.com/feed/economy.xml';
-
-                const [res1, res2] = await Promise.all([
-                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(sbsUrl)}`),
-                    fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(hkUrl)}`)
+            async startEngine() {
+                this.updateClock(); // RAF based clock
+                
+                // Fetch data concurrently
+                await Promise.allSettled([
+                    this.fetchWeather(),
+                    this.fetchFinance(),
+                    this.fetchNews()
                 ]);
+
+                // Set update intervals
+                setInterval(() => this.fetchWeather(), 30 * 60 * 1000); // 30 mins
+                setInterval(() => this.fetchNews(), 15 * 60 * 1000);    // 15 mins
+                setInterval(() => this.fetchFinance(), 60 * 1000);      // 1 min
                 
-                const data1 = await res1.json();
-                const data2 = await res2.json();
+                this.initAntiBurnIn();
+            }
 
-                let combinedNews = [];
+            // --- 1. Clock (requestAnimationFrame for performance) ---
+            updateClock() {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+                const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
                 
-                if (data1.status === 'ok') {
-                    data1.items.slice(0, 5).forEach(item => {
-                        // 터치 시 새 창으로 기사가 열리도록 a 태그 추가
-                        combinedNews.push(`<a href="${item.link}" target="_blank" class="news-item"><span class="news-tag tag-sbs">SBS 경제</span> <span>${item.title}</span></a>`);
-                    });
+                const timeEl = document.getElementById('clock-time');
+                if (timeEl.innerText !== timeStr) {
+                    timeEl.innerText = timeStr;
+                    document.getElementById('clock-date').innerText = dateStr;
                 }
-                if (data2.status === 'ok') {
-                    data2.items.slice(0, 5).forEach(item => {
-                        // 터치 시 새 창으로 기사가 열리도록 a 태그 추가
-                        combinedNews.push(`<a href="${item.link}" target="_blank" class="news-item"><span class="news-tag tag-hk">한국경제</span> <span>${item.title}</span></a>`);
-                    });
-                }
+                
+                requestAnimationFrame(() => this.updateClock());
+            }
 
-                combinedNews.sort(() => Math.random() - 0.5);
+            // --- 2. Weather ---
+            renderWeatherSkeletons() {
+                const container = document.getElementById('hourly-container');
+                container.innerHTML = Array(8).fill('<div class="hourly-item skeleton"><div class="h-time">00:00</div><div class="h-icon">☀️</div><div class="h-temp">00°</div></div>').join('');
+            }
 
-                if (combinedNews.length > 0) {
-                    const wrapper = document.getElementById('news-wrapper');
-                    wrapper.innerHTML = '';
-                    combinedNews.slice(0, 5).forEach((newsHtml) => {
-                        wrapper.innerHTML += newsHtml;
-                    });
-                } else {
-                    throw new Error("뉴스 배열이 비어있음");
+            async fetchWeather() {
+                try {
+                    let lat = 37.5665, lon = 126.9780, locName = 'Seoul, KR'; // Default
+                    
+                    // Try Geolocation
+                    if (navigator.geolocation) {
+                        try {
+                            const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }));
+                            lat = pos.coords.latitude; lon = pos.coords.longitude;
+                            const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+                            const geoData = await geoRes.json();
+                            locName = `${geoData.city || geoData.locality || 'Current Location'}`;
+                        } catch(e) { console.warn("GPS failed, using default."); }
+                    }
+
+                    document.getElementById('loc-name').innerText = locName;
+
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`);
+                    const data = await res.json();
+                    
+                    const cur = data.current_weather;
+                    
+                    // Remove skeleton
+                    const tempEl = document.getElementById('cur-temp');
+                    const descEl = document.getElementById('cur-desc');
+                    tempEl.classList.remove('skeleton');
+                    descEl.classList.remove('skeleton');
+                    
+                    tempEl.innerText = `${Math.round(cur.temperature)}°`;
+                    
+                    const weatherMap = this.getWeatherDetails(cur.weathercode);
+                    descEl.innerText = weatherMap.desc;
+                    document.body.style.backgroundImage = `url('${weatherMap.bg}')`;
+
+                    // Hourly
+                    const container = document.getElementById('hourly-container');
+                    container.innerHTML = '';
+                    const nowHour = new Date().getHours();
+                    let startIdx = data.hourly.time.findIndex(t => new Date(t).getHours() === nowHour && new Date(t) >= new Date().setHours(0,0,0,0));
+                    if(startIdx === -1) startIdx = 0;
+
+                    for (let i = startIdx; i < startIdx + 24; i += 3) {
+                        if (!data.hourly.time[i]) break;
+                        const tDate = new Date(data.hourly.time[i]);
+                        const hr = tDate.getHours().toString().padStart(2, '0') + ':00';
+                        const hTemp = Math.round(data.hourly.temperature_2m[i]);
+                        const hCode = data.hourly.weathercode[i];
+                        const hIcon = this.getWeatherDetails(hCode).icon;
+
+                        container.innerHTML += `
+                            <div class="hourly-item">
+                                <span class="h-time">${hr}</span>
+                                <span class="h-icon">${hIcon}</span>
+                                <span class="h-temp">${hTemp}°</span>
+                            </div>
+                        `;
+                    }
+                    document.getElementById('upd-weather').innerText = `Updated: ${new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}`;
+                } catch (e) { console.error("Weather Error", e); }
+            }
+
+            getWeatherDetails(code) {
+                if (code <= 3) return { icon: "☀️", desc: code > 0 ? "Partly Cloudy" : "Clear", bg: "https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=2560&auto=format&fit=crop" };
+                if (code >= 45 && code <= 48) return { icon: "🌫️", desc: "Fog", bg: "https://images.unsplash.com/photo-1485236715568-ddc5ee6ca227?q=80&w=2560&auto=format&fit=crop" };
+                if (code >= 51 && code <= 69) return { icon: "🌧️", desc: "Rain", bg: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=2560&auto=format&fit=crop" };
+                if (code >= 71 && code <= 79) return { icon: "❄️", desc: "Snow", bg: "https://images.unsplash.com/photo-1491002052546-bf38f186af56?q=80&w=2560&auto=format&fit=crop" };
+                return { icon: "⛈️", desc: "Thunderstorm", bg: "https://images.unsplash.com/photo-1534088568595-a066f410cbda?q=80&w=2560&auto=format&fit=crop" };
+            }
+
+            // --- 3. Finance (Green=Up, Red=Down) ---
+            renderFinanceSkeletons() {
+                const container = document.getElementById('finance-container');
+                container.innerHTML = Array(4).fill('<div class="finance-item skeleton"><div class="f-name">Loading</div><div class="f-price">0,000.00</div><div class="f-change-group">0.00 (0%)</div></div>').join('');
+            }
+
+            async fetchWithFallback(url) {
+                const encodedUrl = encodeURIComponent(url);
+                const proxies = [
+                    `https://api.allorigins.win/raw?url=${encodedUrl}`,
+                    `https://api.codetabs.com/v1/proxy?quest=${encodedUrl}`
+                ];
+                for (let proxy of proxies) {
+                    try {
+                        const res = await fetch(proxy, { cache: 'no-store' });
+                        if (res.ok) return await res.json();
+                    } catch (e) {}
                 }
-            } catch (err) { 
-                document.getElementById('news-wrapper').innerHTML = '<div class="news-item">뉴스 로딩에 실패했습니다. 다음 주기에 재시도합니다.</div>'; 
+                throw new Error("Proxies failed");
+            }
+
+            async fetchFinance() {
+                try {
+                    let html = '';
+                    
+                    // 1. USD/KRW
+                    try {
+                        const exRes = await fetch('https://open.er-api.com/v6/latest/USD');
+                        const exData = await exRes.json();
+                        html += this.buildFinanceCard('USD/KRW', exData.rates.KRW, 0, 0, 'https://www.google.com/finance/quote/USD-KRW');
+                    } catch(e) { html += this.buildFinanceCard('USD/KRW', 0, 0, 0, '#'); }
+
+                    // 2. Indices
+                    try {
+                        const stockUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC&t=${Date.now()}`;
+                        const data = await this.fetchWithFallback(stockUrl);
+                        const stocks = data.quoteResponse.result;
+
+                        const ks11 = stocks.find(s => s.symbol === '^KS11');
+                        const kq11 = stocks.find(s => s.symbol === '^KQ11');
+                        const ixic = stocks.find(s => s.symbol === '^IXIC');
+
+                        html += this.buildFinanceCard('KOSPI', ks11?.regularMarketPrice, ks11?.regularMarketChange, ks11?.regularMarketChangePercent, 'https://www.google.com/finance/quote/KOSPI:KRX');
+                        html += this.buildFinanceCard('KOSDAQ', kq11?.regularMarketPrice, kq11?.regularMarketChange, kq11?.regularMarketChangePercent, 'https://www.google.com/finance/quote/KOSDAQ:KRX');
+                        html += this.buildFinanceCard('NASDAQ', ixic?.regularMarketPrice, ixic?.regularMarketChange, ixic?.regularMarketChangePercent, 'https://www.google.com/finance/quote/IXIC:INDEXNASDAQ');
+                    } catch(e) { 
+                        html += this.buildFinanceCard('KOSPI', 0, 0, 0, '#');
+                        html += this.buildFinanceCard('KOSDAQ', 0, 0, 0, '#');
+                        html += this.buildFinanceCard('NASDAQ', 0, 0, 0, '#');
+                    }
+
+                    document.getElementById('finance-container').innerHTML = html;
+                } catch (e) { console.error("Finance Error", e); }
+            }
+
+            buildFinanceCard(title, price, change, percent, link) {
+                if(!price) return `<a href="#" class="finance-item"><span class="f-name">${title}</span><span class="f-price" style="color:var(--text-tertiary)">Unavailable</span></a>`;
+                
+                // Western Standard: Up is Green, Down is Red
+                const isUp = change > 0;
+                const isDown = change < 0;
+                const colorCls = isUp ? 'up' : (isDown ? 'down' : 'flat');
+                const sign = isUp ? '+' : (isDown ? '' : ''); // Negative sign is included in number
+
+                return `
+                    <a href="${link}" target="_blank" class="finance-item">
+                        <span class="f-name">${title}</span>
+                        <span class="f-price">${this.format.format(price)}</span>
+                        <span class="f-change-group ${colorCls}">
+                            <span class="f-change">${sign}${this.format.format(change)}</span>
+                            <span class="f-percent">(${sign}${percent.toFixed(2)}%)</span>
+                        </span>
+                    </a>
+                `;
+            }
+
+            // --- 4. News (Hero + List) ---
+            renderNewsSkeletons() {
+                const container = document.getElementById('news-container');
+                container.innerHTML = `
+                    <div class="news-hero skeleton" style="height: 120px;"></div>
+                    ${Array(4).fill('<div class="news-sub skeleton" style="height: 40px;"></div>').join('')}
+                `;
+            }
+
+            async fetchNews() {
+                try {
+                    const hkUrl = 'https://rss.hankyung.com/feed/economy.xml';
+                    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(hkUrl)}&t=${Date.now()}`);
+                    const data = await res.json();
+
+                    if(data.status !== 'ok' || !data.items) throw new Error("News format error");
+
+                    const items = data.items.slice(0, 6);
+                    const container = document.getElementById('news-container');
+                    container.innerHTML = '';
+
+                    items.forEach((item, index) => {
+                        if (index === 0) {
+                            // Hero Article
+                            container.innerHTML += `
+                                <a href="${item.link}" target="_blank" class="news-hero">
+                                    <span class="hero-tag">BREAKING</span>
+                                    <h3 class="hero-title">${item.title}</h3>
+                                </a>
+                            `;
+                        } else {
+                            // Sub Articles
+                            container.innerHTML += `
+                                <a href="${item.link}" target="_blank" class="news-sub">
+                                    <span class="sub-bullet">›</span>
+                                    <h4 class="sub-title">${item.title}</h4>
+                                </a>
+                            `;
+                        }
+                    });
+                    document.getElementById('upd-news').innerText = `Updated: ${new Date().toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}`;
+                } catch (e) {
+                    console.error("News Error", e);
+                    document.getElementById('news-container').innerHTML = '<div class="news-sub"><h4 class="sub-title">Failed to load feed. Retrying shortly...</h4></div>';
+                }
+            }
+
+            // --- Utilities ---
+            initAntiBurnIn() {
+                setInterval(() => {
+                    const x = Math.floor(Math.random() * 5) - 2;
+                    const y = Math.floor(Math.random() * 5) - 2;
+                    document.querySelector('.dashboard-container').style.transform = `translate(${x}px, ${y}px)`;
+                }, 5 * 60 * 1000); // 5 mins
+            }
+
+            async requestWakeLock() {
+                try {
+                    if ('wakeLock' in navigator) await navigator.wakeLock.request('screen');
+                } catch (err) { console.warn('Wake Lock failed:', err); }
             }
         }
 
-        function initAntiBurnIn() {
-            setInterval(() => {
-                const x = Math.floor(Math.random() * 5) - 2;
-                const y = Math.floor(Math.random() * 5) - 2;
-                document.body.style.transform = `translate(${x}px, ${y}px)`;
-            }, 300000);
-        }
-
-        async function wakeLock() { try { await navigator.wakeLock.request('screen'); } catch (e) {} }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initClock(); 
-            initWeather(); 
-            initFinance(); 
-            initNews(); 
-            initAntiBurnIn();
-            
-            document.body.addEventListener('click', wakeLock); 
-            wakeLock();
-            
-            setInterval(initWeather, 1800000); 
-            setInterval(initNews, 1800000);    
-            setInterval(initFinance, 600000);  
-        });
+        // Boot
+        document.addEventListener('DOMContentLoaded', () => new Dashboard());
     </script>
 </body>
 </html>
