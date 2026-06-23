@@ -3,145 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Dashboard</title>
+    <title>Executive Command Center | Series A Prototype</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 데이터-잉크 비율을 고려한 미니멀 컬러 팔레트 */
         :root {
-            --bg-color: #f8fafc;
+            --bg-color: #f1f5f9;
             --surface-color: #ffffff;
             --text-primary: #0f172a;
             --text-secondary: #64748b;
             --border-color: #e2e8f0;
             --accent-color: #2563eb;
-            --hover-bg: #f1f5f9;
+            --ai-color: #8b5cf6;
             --up-color: #ef4444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: var(--text-primary); padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
 
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.5;
-            padding: 2rem;
-            -webkit-font-smoothing: antialiased;
+        /* --- Skeleton UI Animation --- */
+        @keyframes pulse {
+            0% { background-color: #cbd5e1; }
+            50% { background-color: #e2e8f0; }
+            100% { background-color: #cbd5e1; }
         }
+        .skeleton { animation: pulse 1.5s infinite ease-in-out; border-radius: 6px; color: transparent !important; pointer-events: none; }
+        .skeleton * { visibility: hidden; }
 
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        /* 1. 헤더 영역 (시각적 간결함 유지) */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            padding-bottom: 1.5rem;
-            border-bottom: 2px solid var(--text-primary);
-        }
-
-        .header-left h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; }
-        .header-left p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem; font-weight: 500; }
-
+        /* Header */
+        header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1rem; border-bottom: 2px solid var(--border-color); }
+        .header-left h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; }
+        .header-left p { color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.2rem; font-weight: 500; }
         .header-right { text-align: right; }
-        .header-right .time { font-size: 2.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
-        .header-right .date { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600; }
+        .header-right .time { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+        .header-right .date { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem; font-weight: 600; }
 
-        /* 2. 최상단 KPI 그리드 (정보 우선순위 명확화) */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .kpi-card {
-            background: var(--surface-color);
-            padding: 1.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-            cursor: default;
-        }
-
-        /* 마이크로 인터랙션 적용 */
-        .kpi-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.1);
-            border-color: var(--accent-color);
-        }
-
-        .kpi-label { color: var(--text-secondary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-        .kpi-value { font-size: 1.75rem; font-weight: 800; display: flex; align-items: center; gap: 0.75rem; }
-        .kpi-sub { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); }
-
-        /* 3. 메인 콘텐츠 그리드 */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-        }
-
-        @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
-
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+        /* AI Insight Banner (Killer Feature) */
+        .ai-banner {
+            background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(37, 99, 235, 0.05));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-left: 4px solid var(--ai-color);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-        }
-        .section-title i { color: var(--accent-color); }
-
-        .widget-box {
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            height: 100%;
+            gap: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
         }
+        .ai-icon { color: var(--ai-color); font-size: 1.5rem; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-3px); } 100% { transform: translateY(0px); } }
+        .ai-text { font-weight: 600; font-size: 0.95rem; line-height: 1.4; }
 
-        /* 4. 리스트형 UI (뉴스, 할 일) */
+        /* KPI Grid */
+        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .kpi-card { background: var(--surface-color); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent-color); }
+        .kpi-label { color: var(--text-secondary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display:flex; justify-content: space-between;}
+        .kpi-value { font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 0.75rem; min-height: 2.2rem; }
+        .kpi-sub { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); min-height: 1rem;}
+
+        /* Main Grid */
+        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-title i { color: var(--accent-color); }
+        .widget-box { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden; }
+
+        /* Lists */
         .list-group { display: flex; flex-direction: column; }
-        .list-item {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            text-decoration: none;
-            color: var(--text-primary);
-            transition: background 0.15s ease;
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-        }
+        .list-item { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; text-decoration: none; color: inherit; transition: background 0.15s; }
         .list-item:last-child { border-bottom: none; }
-
-        /* 뉴스 호버 마이크로 인터랙션 */
-        .list-item[href]:hover { background: var(--hover-bg); }
-        .list-item[href]:hover .item-title { color: var(--accent-color); }
-
-        .item-icon { color: var(--text-secondary); font-size: 1.25rem; margin-top: 0.125rem; }
+        .list-item:hover { background: var(--bg-color); }
         .item-content { flex: 1; }
-        .item-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; transition: color 0.15s ease; line-height: 1.4; }
-        .item-meta { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; }
+        .item-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; min-height: 1.4rem;}
+        .item-meta { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; min-height: 1rem;}
+
+        /* Prop Data Badge */
+        .badge-prop { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <div class="header-left">
-                <h1>Command Center</h1>
-                <p>데이터 기반 의사결정을 위한 실시간 인사이트</p>
+                <h1>Command Center <span style="font-size: 1rem; color: var(--accent-color); background: #eff6ff; padding: 4px 8px; border-radius: 8px; margin-left: 8px;">Pro</span></h1>
+                <p>데이터 기반 의사결정을 위한 C-Level 인텔리전스</p>
             </div>
             <div class="header-right">
                 <div class="time" id="time">--:--</div>
@@ -149,23 +95,30 @@
             </div>
         </header>
 
+        <div class="ai-banner">
+            <div class="ai-icon"><i class="fa-solid fa-sparkles"></i></div>
+            <div class="ai-text" id="ai-insight">
+                <span class="skeleton" style="display:inline-block; width: 600px; height: 1.2rem;">AI가 현재 상황을 분석하여 인사이트를 도출하고 있습니다...</span>
+            </div>
+        </div>
+
         <div class="kpi-grid">
             <div class="kpi-card">
-                <div class="kpi-label">부산 실시간 날씨</div>
-                <div class="kpi-value" id="weather-value">
-                    <span id="weather-icon">⏳</span> <span id="weather-temp">--°C</span>
-                </div>
-                <div class="kpi-sub" id="weather-desc">데이터를 불러오는 중입니다</div>
+                <div class="kpi-label"><span id="w-location"><span class="skeleton" style="width:100px; height:12px;"></span></span> <span>WEATHER</span></div>
+                <div class="kpi-value" id="w-value"><span class="skeleton" style="width:80px; height:32px;"></span></div>
+                <div class="kpi-sub" id="w-desc"><span class="skeleton" style="width:150px; height:14px;"></span></div>
             </div>
-            <div class="kpi-card">
-                <div class="kpi-label">ISDRAM Index</div>
+            
+            <div class="kpi-card" style="border-left: 4px solid var(--text-primary);">
+                <div class="kpi-label"><span>ISDRAM INDEX <span class="badge-prop">자체 데이터</span></span> <span>TECH INDICATOR</span></div>
                 <div class="kpi-value">
                     <i class="fa-solid fa-microchip" style="color:var(--text-secondary);"></i> 1,425.80
                 </div>
-                <div class="kpi-sub"><span style="color:var(--up-color); font-weight:700;">+2.45%</span> (최근 업데이트 기준)</div>
+                <div class="kpi-sub"><span style="color:var(--up-color); font-weight:700;">+2.45%</span> · 글로벌 서버 증설 수요 반영됨</div>
             </div>
+
             <div class="kpi-card">
-                <div class="kpi-label">Next Action</div>
+                <div class="kpi-label"><span>NEXT ACTION</span> <span>SCHEDULE</span></div>
                 <div class="kpi-value">
                     <i class="fa-regular fa-calendar-check" style="color:var(--accent-color);"></i> 기획 회의
                 </div>
@@ -174,10 +127,9 @@
         </div>
 
         <div class="main-grid">
-            
             <div class="widget-col">
-                <h2 class="section-title"><i class="fa-solid fa-chart-pie"></i> 마켓 인텔리전스</h2>
-                <div class="widget-box" style="height: 520px; padding: 10px;">
+                <h2 class="section-title"><i class="fa-solid fa-chart-pie"></i> 마켓 터미널 (Live)</h2>
+                <div class="widget-box" style="height: 500px; padding: 10px;">
                     <div class="tradingview-widget-container">
                         <div class="tradingview-widget-container__widget"></div>
                         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
@@ -193,21 +145,18 @@
                             "showFloatingTooltip": true,
                             "tabs": [
                             {
-                                "title": "글로벌 지수",
+                                "title": "핵심 지수",
                                 "symbols": [
                                     { "s": "KRX:102110", "d": "코스피 (TIGER 200)" },
-                                    { "s": "KRX:232080", "d": "코스닥 (TIGER 코스닥150)" },
-                                    { "s": "AMEX:SPY", "d": "S&P 500" },
                                     { "s": "NASDAQ:QQQ", "d": "나스닥 100" },
-                                    { "s": "AMEX:DIA", "d": "다우존스" }
+                                    { "s": "AMEX:SPY", "d": "S&P 500" }
                                 ]
                             },
                             {
                                 "title": "주요 환율",
                                 "symbols": [
                                     { "s": "FX_IDC:USDKRW", "d": "원/달러" },
-                                    { "s": "FX_IDC:JPYKRW", "d": "원/엔" },
-                                    { "s": "FX_IDC:CNYKRW", "d": "원/위안" }
+                                    { "s": "FX_IDC:JPYKRW", "d": "원/엔" }
                                 ]
                             }
                             ]
@@ -218,112 +167,100 @@
             </div>
 
             <div class="action-col">
-                <h2 class="section-title"><i class="fa-solid fa-bolt"></i> 실시간 경제 뉴스</h2>
+                <h2 class="section-title"><i class="fa-solid fa-bolt"></i> 실시간 경제 속보</h2>
                 <div class="widget-box list-group" id="news-container">
-                    <div class="list-item">뉴스를 불러오는 중입니다...</div>
-                </div>
-                
-                <h2 class="section-title" style="margin-top: 2rem;"><i class="fa-solid fa-list-check"></i> 오늘의 할 일</h2>
-                <div class="widget-box list-group">
-                    <div class="list-item">
-                        <div class="item-icon" style="color: #10b981;"><i class="fa-solid fa-circle-check"></i></div>
-                        <div class="item-content">
-                            <div class="item-title">주간 업무 보고 회의 참석</div>
-                            <div class="item-meta">오전 10:00</div>
-                        </div>
-                    </div>
-                    <div class="list-item">
-                        <div class="item-icon" style="color: var(--border-color);"><i class="fa-regular fa-circle"></i></div>
-                        <div class="item-content">
-                            <div class="item-title" style="color: var(--text-secondary);">신규 프로젝트 킥오프 미팅</div>
-                            <div class="item-meta">오후 02:00</div>
-                        </div>
-                    </div>
-                    <div class="list-item">
-                        <div class="item-icon" style="color: var(--border-color);"><i class="fa-regular fa-circle"></i></div>
-                        <div class="item-content">
-                            <div class="item-title" style="color: var(--text-secondary);">헬스장 (하체 운동)</div>
-                            <div class="item-meta">오후 06:30</div>
-                        </div>
-                    </div>
+                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:90%"></div><div class="item-meta skeleton" style="width:40%"></div></div></div>
+                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:85%"></div><div class="item-meta skeleton" style="width:50%"></div></div></div>
+                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:95%"></div><div class="item-meta skeleton" style="width:30%"></div></div></div>
+                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:80%"></div><div class="item-meta skeleton" style="width:45%"></div></div></div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
-        // 1. 심플한 시간 및 날짜 (초 단위 제거로 인지 부하 감소)
+        // 1. Time Update
         function updateTime() {
             const now = new Date();
             const days = ['일', '월', '화', '수', '목', '금', '토'];
             document.getElementById('date').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
-            
             let hours = now.getHours();
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12 || 12;
             document.getElementById('time').innerText = `${hours}:${String(now.getMinutes()).padStart(2, '0')} ${ampm}`;
         }
-        setInterval(updateTime, 1000);
-        updateTime();
+        setInterval(updateTime, 1000); updateTime();
 
-        // 2. 실시간 날씨 (최고/최저 기온 통합 표시)
-        async function fetchWeather() {
+        // 2. Weather & Contextual AI (Simulating API Delay to show Skeleton)
+        async function fetchWeather(lat, lon, locName) {
             try {
-                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=35.1796&longitude=129.0756&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul');
+                // 인위적인 지연시간 추가 (스켈레톤 UI를 보여주기 위함, 실제 서비스에선 제거)
+                await new Promise(r => setTimeout(r, 800));
+
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`;
+                const res = await fetch(url);
                 const data = await res.json();
                 
                 const temp = Math.round(data.current.temperature_2m);
-                const code = data.current.weather_code;
                 const maxTemp = Math.round(data.daily.temperature_2m_max[0]);
-                const minTemp = Math.round(data.daily.temperature_2m_min[0]);
+                const code = data.current.weather_code;
                 
-                let icon = '☀️'; let desc = '맑음';
-                if (code >= 2 && code <= 3) { icon = '⛅'; desc = '구름 조금'; }
-                else if (code >= 45 && code <= 48) { icon = '🌫️'; desc = '안개'; }
-                else if (code >= 51 && code <= 67 || code >= 80 && code <= 82) { icon = '🌧️'; desc = '비'; }
-                else if (code >= 71 && code <= 86) { icon = '❄️'; desc = '눈'; }
-                else if (code >= 95) { icon = '⛈️'; desc = '천둥번개'; }
+                let icon = '☀️'; let isRaining = false;
+                if (code >= 2 && code <= 48) { icon = '☁️'; }
+                else if (code >= 51 && code <= 95) { icon = '🌧️'; isRaining = true; }
 
-                document.getElementById('weather-temp').innerText = `${temp}°C`;
-                document.getElementById('weather-icon').innerText = icon;
-                document.getElementById('weather-desc').innerText = `${desc} · 최고 ${maxTemp}° / 최저 ${minTemp}°`;
-            } catch (error) {
-                document.getElementById('weather-desc').innerText = "날씨 정보를 불러오지 못했습니다.";
+                // 스켈레톤 제거 및 데이터 삽입
+                document.getElementById('w-location').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${locName}`;
+                document.getElementById('w-value').innerHTML = `${icon} ${temp}°C`;
+                document.getElementById('w-desc').innerHTML = `최고 ${maxTemp}° · 최저 ${Math.round(data.daily.temperature_2m_min[0])}°`;
+
+                // AI Insight Logic (날씨 기반 동적 메시지)
+                const aiEl = document.getElementById('ai-insight');
+                if(isRaining) {
+                    aiEl.innerHTML = `현재 <span style="color:var(--accent-color); font-weight:800;">비가 내리고 있습니다.</span> 출장 또는 외근 시 교통 체증이 예상되므로, 오후 2시 '신규 프로젝트 킥오프' 미팅을 화상 회의로 전환하는 것을 권장합니다.`;
+                } else {
+                    aiEl.innerHTML = `현재 위치 기상은 <span style="color:var(--accent-color); font-weight:800;">활동하기 좋은 맑은 상태</span>입니다. 오후 6시 30분에 예정된 '하체 운동' 일정을 소화하기 완벽한 날씨입니다.`;
+                }
+
+            } catch (e) {
+                document.getElementById('w-location').innerHTML = "위치 오류";
+                document.getElementById('ai-insight').innerHTML = "AI 분석 서버에 연결할 수 없습니다.";
             }
         }
-        fetchWeather();
-        setInterval(fetchWeather, 600000); 
 
-        // 3. 주요 뉴스 (매일경제 RSS - 디자인 개선)
+        async function getCityName(lat, lon) {
+            try {
+                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
+                const data = await res.json(); return data.locality || data.city || "현재 위치";
+            } catch(e) { return "현재 위치"; }
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (p) => { const loc = await getCityName(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude, loc); },
+                () => fetchWeather(35.1796, 129.0756, "부산 (기본값)")
+            );
+        } else { fetchWeather(35.1796, 129.0756, "부산 (기본값)"); }
+
+        // 3. News Feed (Simulating API Delay)
         async function fetchNews() {
             try {
-                const rssUrl = 'https://www.mk.co.kr/rss/30000001/';
-                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-                
-                const res = await fetch(apiUrl);
-                const data = await res.json();
+                await new Promise(r => setTimeout(r, 1200)); // 스켈레톤 UI 노출용 지연
+                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.mk.co.kr/rss/30000001/')}`;
+                const res = await fetch(apiUrl); const data = await res.json();
                 
                 if(data.status === 'ok') {
-                    let newsHtml = '';
-                    // 최상위 4개 기사만 노출하여 인지 부하 감소
+                    let html = '';
                     data.items.slice(0, 4).forEach(item => {
-                        const date = new Date(item.pubDate);
-                        const timeStr = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
-                        newsHtml += `
-                        <a href="${item.link}" target="_blank" class="list-item">
-                            <div class="item-icon"><i class="fa-regular fa-newspaper"></i></div>
-                            <div class="item-content">
-                                <div class="item-title">${item.title}</div>
-                                <div class="item-meta">매일경제 · ${timeStr} 업데이트</div>
-                            </div>
-                        </a>`;
+                        const d = new Date(item.pubDate);
+                        html += `<a href="${item.link}" target="_blank" class="list-item">
+                                    <div class="item-content"><div class="item-title">${item.title}</div>
+                                    <div class="item-meta">매일경제 · ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}</div></div>
+                                 </a>`;
                     });
-                    document.getElementById('news-container').innerHTML = newsHtml;
+                    document.getElementById('news-container').innerHTML = html;
                 }
-            } catch (error) {
-                document.getElementById('news-container').innerHTML = '<div class="list-item">뉴스를 불러오지 못했습니다.</div>';
-            }
+            } catch(e) {}
         }
         fetchNews();
     </script>
