@@ -14,6 +14,8 @@
             --color-live: #34C759; --color-cached: #FFCC00; --color-offline: #FF3B30;
             --glass-bg: rgba(20, 20, 22, 0.6); --glass-border: rgba(255, 255, 255, 0.08);
             --radius-md: 16px; --font-en: 'Inter', sans-serif; --font-kr: 'Pretendard Variable', sans-serif;
+            --color-link-hover: rgba(255, 255, 255, 0.08);
+            --color-read: #636366;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -63,12 +65,6 @@
         .f-change-group { font-family: var(--font-en); font-size: 0.95rem; font-weight: 600; display: flex; gap: 6px; }
         .up { color: var(--color-up); } .down { color: var(--color-down); } .flat { color: var(--color-flat); }
 
-        /* News List */
-        .news-panel { grid-column: span 4; grid-row: span 2; display: flex; flex-direction: column; }
-        .news-list { display: flex; flex-direction: column; gap: 16px; }
-        .news-item { font-size: 1.15rem; line-height: 1.4; font-weight: 500; color: var(--text-primary); display: flex; gap: 12px; }
-        .news-item::before { content: '•'; color: var(--text-secondary); }
-
         /* Weather 24H */
         .weather-panel { grid-column: span 8; }
         .hourly-scroll { display: flex; overflow-x: auto; gap: 16px; scrollbar-width: none; }
@@ -77,13 +73,61 @@
         .h-icon { font-size: 1.8rem; }
         .h-temp { font-family: var(--font-en); font-size: 1.1rem; font-weight: 600; }
 
+        /* ==========================================================================
+           Advanced News Reader CSS
+           ========================================================================== */
+        .news-panel { grid-column: span 4; grid-row: span 2; display: flex; flex-direction: column; }
+        .news-list { display: flex; flex-direction: column; gap: 8px; }
+        
+        .news-item-link {
+            text-decoration: none; color: inherit; display: block; border-radius: 8px;
+            transition: all 0.2s ease; position: relative;
+            /* 터치 영역 최적화 (WCAG AA) */
+            min-height: 44px; padding: 12px 16px; margin: 0 -16px; 
+            outline: none; -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hover Effect */
+        .news-item-link:hover, .news-item-link:focus-visible {
+            background-color: var(--color-link-hover);
+        }
+        .news-item-link:hover .news-title { text-decoration: underline; text-underline-offset: 4px; }
+        .news-item-link:hover .external-icon { opacity: 1; transform: translateX(2px) translateY(-2px); }
+
+        /* Layout within Link */
+        .news-content { display: flex; flex-direction: column; gap: 6px; }
+        .news-header { display: flex; justify-content: space-between; align-items: center; }
+        .news-meta-group { display: flex; align-items: center; gap: 8px; }
+        
+        /* Breaking Badge */
+        .badge-breaking {
+            display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 59, 48, 0.15);
+            color: var(--color-down); padding: 2px 6px; border-radius: 4px; font-family: var(--font-en);
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
+        }
+        .badge-breaking::before { content: ''; display: block; width: 6px; height: 6px; background-color: var(--color-down); border-radius: 50%; animation: pulse 1.5s infinite; }
+        
+        /* Source Tag */
+        .source-tag { font-size: 0.75rem; font-weight: 600; color: #aaa; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
+        
+        /* Tooltip style time */
+        .publish-time { font-family: var(--font-en); font-size: 0.75rem; color: var(--text-tertiary); }
+        
+        /* Title and Icon */
+        .title-wrapper { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+        .news-title { font-size: 1.05rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); word-break: keep-all; flex-grow: 1; }
+        .external-icon { font-size: 0.8rem; color: var(--text-secondary); opacity: 0.3; transition: all 0.2s ease; margin-top: 4px; flex-shrink: 0; }
+
+        /* Read State (History) */
+        .news-item-link.is-read .news-title { color: var(--color-read); font-weight: 400; text-decoration: none;}
+        .news-item-link.is-read .source-tag, .news-item-link.is-read .publish-time { opacity: 0.5; }
+        .news-item-link.is-read::after { content: '✓'; position: absolute; top: 12px; right: -5px; font-size: 0.8rem; color: var(--color-read); }
+
         /* Skeleton Shimmering */
         .skeleton { background: #2a2a2d; background-image: linear-gradient(90deg, #2a2a2d 0px, #3a3a3d 40px, #2a2a2d 80px); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; border-radius: 4px; color: transparent !important; pointer-events: none; }
         .skeleton * { visibility: hidden; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,199,89, 0.4); } 70% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(52,199,89, 0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52,199,89, 0); } }
-
-        /* Warning Message styling */
+        @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,59,48, 0.4); } 70% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(255,59,48, 0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,59,48, 0); } }
         .offline-warning { font-size: 0.75rem; color: var(--color-offline); margin-top: 4px; display: block; font-weight: 500;}
     </style>
 </head>
@@ -110,20 +154,18 @@
                     <span class="sync-time" id="time-finance">--</span>
                 </div>
             </div>
-            <div class="finance-grid" id="finance-grid">
-                </div>
+            <div class="finance-grid" id="finance-grid"></div>
         </section>
 
         <section class="glass-card news-panel" id="card-news">
             <div class="status-bar">
-                <div class="section-title">Top Stories</div>
+                <div class="section-title">Live Updates</div>
                 <div class="sync-status status-cached">
                     <span class="sync-dot"></span><span class="sync-text">INIT</span>
                     <span class="sync-time" id="time-news">--</span>
                 </div>
             </div>
-            <div class="news-list" id="news-list">
-                </div>
+            <div class="news-list" id="news-list"></div>
         </section>
 
         <section class="glass-card weather-panel" id="card-weather">
@@ -134,43 +176,19 @@
                     <span class="sync-time" id="time-weather">--</span>
                 </div>
             </div>
-            <div class="hourly-scroll" id="hourly-list">
-                 </div>
+            <div class="hourly-scroll" id="hourly-list"></div>
         </section>
     </main>
 
     <script>
-        /**
-         * ==========================================
-         * 1. Error & Monitoring System (No console.log)
-         * ==========================================
-         */
         class ErrorTracker {
             static logs = [];
-            static logError(context, error, metadata = {}) {
-                this.logs.push({ time: new Date().toISOString(), context, message: error.message, ...metadata });
-                // In production: send to Sentry/Datadog here.
-            }
+            static logError(context, error) { this.logs.push({ time: new Date().toISOString(), context, message: error.message }); }
         }
 
-        /**
-         * ==========================================
-         * 2. Resilient Cache System (IndexedDB/LocalStorage fallback)
-         * ==========================================
-         */
         class CacheManager {
-            static set(key, data) {
-                try {
-                    const payload = { data, timestamp: Date.now() };
-                    localStorage.setItem(`db_cache_${key}`, JSON.stringify(payload));
-                } catch (e) { ErrorTracker.logError('CacheSet', e); }
-            }
-            static get(key) {
-                try {
-                    const item = localStorage.getItem(`db_cache_${key}`);
-                    return item ? JSON.parse(item) : null;
-                } catch (e) { ErrorTracker.logError('CacheGet', e); return null; }
-            }
+            static set(key, data) { try { localStorage.setItem(`db_cache_${key}`, JSON.stringify({ data, timestamp: Date.now() })); } catch (e) { ErrorTracker.logError('CacheSet', e); } }
+            static get(key) { try { const item = localStorage.getItem(`db_cache_${key}`); return item ? JSON.parse(item) : null; } catch (e) { return null; } }
             static getAgeString(timestamp) {
                 if (!timestamp) return 'Unknown';
                 const diffSec = Math.floor((Date.now() - timestamp) / 1000);
@@ -180,78 +198,32 @@
             }
         }
 
-        /**
-         * ==========================================
-         * 3. Network Engine (Circuit Breaker, Exponential Backoff, Timeout)
-         * ==========================================
-         */
         class ResilientFetcher {
-            static circuitBreaker = new Map(); // Tracks failures per endpoint
-            static CB_THRESHOLD = 3;
-            static CB_COOLDOWN = 10000; // 10 seconds
-
-            // Execute fetch with Timeout and AbortController
+            static circuitBreaker = new Map();
             static async fetchWithTimeout(url, timeoutMs = 5000) {
-                const controller = new AbortController();
-                const id = setTimeout(() => controller.abort(), timeoutMs);
-                try {
-                    const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
-                    clearTimeout(id);
-                    if (!response.ok) throw new Error(`HTTP_${response.status}`);
-                    return response;
-                } catch (err) {
-                    clearTimeout(id);
-                    throw err;
-                }
+                const controller = new AbortController(); const id = setTimeout(() => controller.abort(), timeoutMs);
+                try { const res = await fetch(url, { signal: controller.signal, cache: 'no-store' }); clearTimeout(id); if (!res.ok) throw new Error(`HTTP_${res.status}`); return res; } catch (err) { clearTimeout(id); throw err; }
             }
-
-            // Execute fetch with Exponential Backoff and Circuit Breaker
             static async execute(url, maxRetries = 3) {
                 const cbState = this.circuitBreaker.get(url) || { fails: 0, openUntil: 0 };
-                
-                // Circuit Breaker Check
-                if (cbState.fails >= this.CB_THRESHOLD && Date.now() < cbState.openUntil) {
-                    throw new Error("CIRCUIT_BREAKER_OPEN");
-                }
-
+                if (cbState.fails >= 3 && Date.now() < cbState.openUntil) throw new Error("CIRCUIT_BREAKER_OPEN");
                 for (let attempt = 0; attempt <= maxRetries; attempt++) {
                     try {
                         const res = await this.fetchWithTimeout(url);
-                        
-                        // Reset Circuit Breaker on success
                         this.circuitBreaker.set(url, { fails: 0, openUntil: 0 });
-                        
-                        // Parse depending on content type
-                        const contentType = res.headers.get("content-type");
-                        if (contentType && contentType.includes("application/json")) {
-                            return await res.json();
-                        } else {
-                            return await res.text(); // For XML/RSS
-                        }
+                        const ct = res.headers.get("content-type");
+                        return (ct && ct.includes("application/json")) ? await res.json() : await res.text();
                     } catch (err) {
-                        ErrorTracker.logError('FetchFail', err, { url, attempt });
                         if (attempt === maxRetries || err.name === 'AbortError') {
-                            // Trip Circuit Breaker
-                            cbState.fails += 1;
-                            if (cbState.fails >= this.CB_THRESHOLD) {
-                                cbState.openUntil = Date.now() + this.CB_COOLDOWN;
-                            }
-                            this.circuitBreaker.set(url, cbState);
-                            throw err;
+                            cbState.fails += 1; if (cbState.fails >= 3) cbState.openUntil = Date.now() + 10000;
+                            this.circuitBreaker.set(url, cbState); throw err;
                         }
-                        // Exponential Backoff (1s, 2s, 4s...)
-                        const delay = Math.pow(2, attempt) * 1000;
-                        await new Promise(r => setTimeout(r, delay));
+                        await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
                     }
                 }
             }
         }
 
-        /**
-         * ==========================================
-         * 4. Serverless Proxy Routes (Mocked endpoints with Fallbacks)
-         * ==========================================
-         */
         const ServerlessRoutes = {
             finance: {
                 primary: () => ResilientFetcher.execute(`https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC&t=' + Date.now())}`),
@@ -261,31 +233,24 @@
                 primary: () => ResilientFetcher.execute('https://open.er-api.com/v6/latest/USD'),
                 backup: () => ResilientFetcher.execute('https://api.frankfurter.app/latest?from=USD&to=KRW')
             },
-            weather: {
-                primary: (lat, lon) => ResilientFetcher.execute(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`)
-            },
+            weather: { primary: (lat, lon) => ResilientFetcher.execute(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`) },
             news: {
                 primary: () => ResilientFetcher.execute(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://rss.hankyung.com/feed/economy.xml')}&t=${Date.now()}`),
                 backup: () => ResilientFetcher.execute(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=02')}`)
             }
         };
 
-        /**
-         * ==========================================
-         * 5. Dashboard Core Application
-         * ==========================================
-         */
         class Dashboard {
             constructor() {
                 this.numFormatter = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                this.readArticles = new Set(JSON.parse(localStorage.getItem('read_articles') || '[]')); // 기사 읽음 히스토리 로드
                 this.initSkeletons();
                 this.start();
             }
 
-            // Render placeholders so UI never looks broken
             initSkeletons() {
                 document.getElementById('finance-grid').innerHTML = Array(4).fill('<div class="finance-item skeleton"><div class="f-name">DATA</div><div class="f-price">0000.00</div></div>').join('');
-                document.getElementById('news-list').innerHTML = Array(5).fill('<div class="news-item skeleton">Gathering latest information from sources...</div>').join('');
+                document.getElementById('news-list').innerHTML = Array(5).fill('<div class="skeleton" style="height:60px; margin-bottom:8px;"></div>').join('');
                 document.getElementById('hourly-list').innerHTML = Array(8).fill('<div class="hourly-item skeleton"><div class="h-time">00:00</div><div class="h-icon">☀️</div><div class="h-temp">00°</div></div>').join('');
             }
 
@@ -298,15 +263,9 @@
 
             async start() {
                 this.tickClock();
-                
-                // Stale-While-Revalidate: Show cache first instantly
                 this.loadFromCache();
-
-                // Promise.allSettled guarantees one failure doesn't stop others
                 await this.refreshAll();
-
-                // Background polling
-                setInterval(() => this.refreshAll(), 60000); // Try refreshing every minute
+                setInterval(() => this.refreshAll(), 60000);
             }
 
             tickClock() {
@@ -320,73 +279,33 @@
             }
 
             loadFromCache() {
-                const weatherCache = CacheManager.get('weather');
-                const financeCache = CacheManager.get('finance');
-                const newsCache = CacheManager.get('news');
-
-                if (weatherCache) this.renderWeather(weatherCache.data, 'cached', weatherCache.timestamp);
-                if (financeCache) this.renderFinance(financeCache.data, 'cached', financeCache.timestamp);
-                if (newsCache) this.renderNews(newsCache.data, 'cached', newsCache.timestamp);
+                const w = CacheManager.get('weather'), f = CacheManager.get('finance'), n = CacheManager.get('news');
+                if (w) this.renderWeather(w.data, 'cached', w.timestamp);
+                if (f) this.renderFinance(f.data, 'cached', f.timestamp);
+                if (n) this.renderNews(n.data, 'cached', n.timestamp);
             }
 
-            async refreshAll() {
-                await Promise.allSettled([
-                    this.syncWeather(),
-                    this.syncFinance(),
-                    this.syncNews()
-                ]);
-            }
+            async refreshAll() { await Promise.allSettled([this.syncWeather(), this.syncFinance(), this.syncNews()]); }
 
-            // ================= Domain Logic: Finance =================
+            // ================= Finance =================
             async syncFinance() {
                 try {
                     let fxData, stockData;
-                    let status = 'live';
-
-                    // FX Data Fallback Chain
-                    try {
-                        const res = await ServerlessRoutes.fx.primary();
-                        fxData = { rate: res.rates.KRW };
-                    } catch (e1) {
-                        try {
-                            const res2 = await ServerlessRoutes.fx.backup();
-                            fxData = { rate: res2.rates.KRW };
-                        } catch (e2) { throw new Error("FX_ALL_FAILED"); }
-                    }
-
-                    // Stock Data Fallback Chain
-                    try {
-                        const res = await ServerlessRoutes.finance.primary();
-                        stockData = res.quoteResponse.result;
-                    } catch (e1) {
-                        try {
-                            const res2 = await ServerlessRoutes.finance.backup();
-                            stockData = res2.quoteResponse.result;
-                        } catch (e2) { throw new Error("STOCK_ALL_FAILED"); }
-                    }
-
+                    try { fxData = { rate: (await ServerlessRoutes.fx.primary()).rates.KRW }; } catch (e) { fxData = { rate: (await ServerlessRoutes.fx.backup()).rates.KRW }; }
+                    try { stockData = (await ServerlessRoutes.finance.primary()).quoteResponse.result; } catch (e) { stockData = (await ServerlessRoutes.finance.backup()).quoteResponse.result; }
+                    
                     const finalData = { fx: fxData, stocks: stockData };
                     CacheManager.set('finance', finalData);
                     this.renderFinance(finalData, 'live', Date.now());
-
                 } catch (err) {
-                    ErrorTracker.logError('SyncFinance', err);
                     const cache = CacheManager.get('finance');
-                    if (cache) {
-                        this.renderFinance(cache.data, 'offline', cache.timestamp);
-                    } else {
-                        // Extreme fallback: Hardcoded safe zero state instead of error text
-                        document.getElementById('finance-grid').innerHTML = '<div class="offline-warning">Awaiting network recovery...</div>';
-                        this.updateStatus('card-finance', 'offline', null);
-                    }
+                    if (cache) this.renderFinance(cache.data, 'offline', cache.timestamp);
+                    else { document.getElementById('finance-grid').innerHTML = '<div class="offline-warning">Awaiting network recovery...</div>'; this.updateStatus('card-finance', 'offline', null); }
                 }
             }
 
             renderFinance(data, status, timestamp) {
-                let html = '';
-                
-                // USD
-                html += `
+                let html = `
                     <div class="finance-item">
                         <span class="f-name">USD/KRW</span>
                         <span class="f-price">${this.numFormatter.format(data.fx.rate)}</span>
@@ -394,129 +313,142 @@
                         ${status === 'offline' ? '<span class="offline-warning">⚠ Network Offline</span>' : ''}
                     </div>
                 `;
-
-                // Indices
                 const mapping = { '^KS11': 'KOSPI', '^KQ11': 'KOSDAQ', '^IXIC': 'NASDAQ' };
                 data.stocks.forEach(item => {
                     if(!mapping[item.symbol]) return;
-                    const change = item.regularMarketChange || 0;
-                    const color = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat');
-                    const sign = change > 0 ? '+' : '';
-
+                    const change = item.regularMarketChange || 0; const color = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat'); const sign = change > 0 ? '+' : '';
                     html += `
                         <div class="finance-item">
                             <span class="f-name">${mapping[item.symbol]}</span>
                             <span class="f-price">${this.numFormatter.format(item.regularMarketPrice)}</span>
-                            <span class="f-change-group ${color}">
-                                <span>${sign}${this.numFormatter.format(change)}</span>
-                                <span>(${sign}${item.regularMarketChangePercent.toFixed(2)}%)</span>
-                            </span>
+                            <span class="f-change-group ${color}"><span>${sign}${this.numFormatter.format(change)}</span><span>(${sign}${item.regularMarketChangePercent.toFixed(2)}%)</span></span>
                             ${status === 'offline' ? '<span class="offline-warning">⚠ Displaying Cached Data</span>' : ''}
                         </div>
                     `;
                 });
-
                 document.getElementById('finance-grid').innerHTML = html;
                 this.updateStatus('card-finance', status, timestamp);
             }
 
-            // ================= Domain Logic: News =================
+            // ================= News (Advanced Reader) =================
             async syncNews() {
                 try {
-                    let items;
+                    let items, sourceName;
                     try {
                         const res = await ServerlessRoutes.news.primary();
-                        if(res.status !== 'ok') throw new Error("Primary News Invalid");
-                        items = res.items;
+                        if(res.status !== 'ok') throw new Error();
+                        items = res.items; sourceName = "한국경제";
                     } catch (e1) {
                         const res2 = await ServerlessRoutes.news.backup();
-                        if(res2.status !== 'ok') throw new Error("Backup News Invalid");
-                        items = res2.items;
+                        if(res2.status !== 'ok') throw new Error();
+                        items = res2.items; sourceName = "SBS 경제";
                     }
 
-                    const cleanData = items.slice(0, 5).map(item => ({ title: item.title.split(' - ')[0] }));
+                    // 표준화된 데이터 구조 생성
+                    const cleanData = items.slice(0, 6).map((item, index) => ({
+                        id: btoa(item.link).substring(0, 15), // URL 기반 고유 ID (읽음 처리용)
+                        title: item.title.split(' - ')[0],
+                        url: item.link,
+                        source: sourceName,
+                        publishedAt: item.pubDate || new Date().toISOString(),
+                        isBreaking: index === 0 // 첫 번째 기사를 속보로 취급
+                    }));
+                    
                     CacheManager.set('news', cleanData);
                     this.renderNews(cleanData, 'live', Date.now());
 
                 } catch (err) {
-                    ErrorTracker.logError('SyncNews', err);
                     const cache = CacheManager.get('news');
                     if (cache) this.renderNews(cache.data, 'offline', cache.timestamp);
                 }
             }
 
+            getTimeAgo(dateString) {
+                const diff = Math.floor((new Date() - new Date(dateString)) / 60000);
+                if (diff < 60) return `${diff}분 전`;
+                if (diff < 1440) return `${Math.floor(diff/60)}시간 전`;
+                return '오늘';
+            }
+
+            // 기사 클릭 시 읽음 처리 로직
+            markAsRead(id, url) {
+                this.readArticles.add(id);
+                // 최대 50개까지만 로컬스토리지에 보관 (메모리 누수 방지)
+                if (this.readArticles.size > 50) {
+                    const arr = Array.from(this.readArticles);
+                    this.readArticles = new Set(arr.slice(arr.length - 50));
+                }
+                localStorage.setItem('read_articles', JSON.stringify(Array.from(this.readArticles)));
+                
+                // UI 즉각 반영
+                document.getElementById(`news-${id}`).classList.add('is-read');
+                
+                // 새 탭 열기 설정 (noopener, noreferrer 보안)
+                window.open(url, "_blank", "noopener,noreferrer");
+            }
+
             renderNews(data, status, timestamp) {
-                let html = data.map(item => `<div class="news-item">${item.title}</div>`).join('');
-                if (status === 'offline') html += '<div class="offline-warning">⚠ Showing last received news.</div>';
-                document.getElementById('news-list').innerHTML = html;
+                const container = document.getElementById('news-list');
+                container.innerHTML = '';
+
+                data.forEach(article => {
+                    const isReadClass = this.readArticles.has(article.id) ? 'is-read' : '';
+                    const breakingBadge = article.isBreaking ? `<span class="badge-breaking">BREAKING</span>` : '';
+                    
+                    // a 태그 대신 div에 onclick 이벤트를 달아 커스텀 로직(읽음처리 + 새창열기) 수행
+                    const itemHtml = `
+                        <div id="news-${article.id}" class="news-item-link ${isReadClass}" onclick="dashboardApp.markAsRead('${article.id}', '${article.url}')" role="link" tabindex="0">
+                            <div class="news-content">
+                                <div class="news-header">
+                                    <div class="news-meta-group">
+                                        ${breakingBadge}
+                                        <span class="source-tag">${article.source}</span>
+                                        <span class="publish-time" title="${new Date(article.publishedAt).toLocaleString()}">${this.getTimeAgo(article.publishedAt)}</span>
+                                    </div>
+                                </div>
+                                <div class="title-wrapper">
+                                    <h3 class="news-title">${article.title}</h3>
+                                    <span class="external-icon">↗</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += itemHtml;
+                });
+
+                if (status === 'offline') container.innerHTML += '<div class="offline-warning" style="padding-left:16px;">⚠ Showing cached news. Network offline.</div>';
+                
                 this.updateStatus('card-news', status, timestamp);
             }
 
-            // ================= Domain Logic: Weather =================
+            // ================= Weather =================
             async syncWeather() {
                 try {
-                    // Default to Busan as per context
                     const lat = 35.1796, lon = 129.0756; 
                     const data = await ServerlessRoutes.weather.primary(lat, lon);
-                    
-                    const cleanData = {
-                        temp: Math.round(data.current_weather.temperature),
-                        code: data.current_weather.weathercode,
-                        hourly: data.hourly.time.map((t, i) => ({
-                            time: t,
-                            temp: Math.round(data.hourly.temperature_2m[i]),
-                            code: data.hourly.weathercode[i]
-                        }))
-                    };
-                    
-                    CacheManager.set('weather', cleanData);
-                    this.renderWeather(cleanData, 'live', Date.now());
-
-                } catch (err) {
-                    ErrorTracker.logError('SyncWeather', err);
-                    const cache = CacheManager.get('weather');
-                    if (cache) this.renderWeather(cache.data, 'offline', cache.timestamp);
-                }
+                    const cleanData = { temp: Math.round(data.current_weather.temperature), code: data.current_weather.weathercode, hourly: data.hourly.time.map((t, i) => ({ time: t, temp: Math.round(data.hourly.temperature_2m[i]), code: data.hourly.weathercode[i] })) };
+                    CacheManager.set('weather', cleanData); this.renderWeather(cleanData, 'live', Date.now());
+                } catch (err) { const cache = CacheManager.get('weather'); if (cache) this.renderWeather(cache.data, 'offline', cache.timestamp); }
             }
 
             renderWeather(data, status, timestamp) {
-                document.getElementById('cur-temp').classList.remove('skeleton');
-                document.getElementById('cur-desc').classList.remove('skeleton');
-
+                document.getElementById('cur-temp').classList.remove('skeleton'); document.getElementById('cur-desc').classList.remove('skeleton');
                 document.getElementById('cur-temp').innerText = `${data.temp}°`;
-                
-                const getIcon = (code) => {
-                    if (code <= 3) return "⛅"; if (code >= 45 && code <= 48) return "🌫️";
-                    if (code >= 51 && code <= 69) return "🌧️"; if (code >= 71 && code <= 79) return "❄️";
-                    return "⛈️";
-                };
-
+                const getIcon = (code) => { if (code <= 3) return "⛅"; if (code >= 45 && code <= 48) return "🌫️"; if (code >= 51 && code <= 69) return "🌧️"; if (code >= 71 && code <= 79) return "❄️"; return "⛈️"; };
                 document.getElementById('cur-desc').innerText = "Busan (Connected)";
                 
-                let html = '';
-                const nowHour = new Date().getHours();
-                let startIdx = data.hourly.findIndex(h => new Date(h.time).getHours() === nowHour && new Date(h.time) >= new Date().setHours(0,0,0,0));
-                if(startIdx === -1) startIdx = 0;
-
+                let html = ''; const nowHour = new Date().getHours(); let startIdx = data.hourly.findIndex(h => new Date(h.time).getHours() === nowHour && new Date(h.time) >= new Date().setHours(0,0,0,0)); if(startIdx === -1) startIdx = 0;
                 for (let i = startIdx; i < startIdx + 24; i += 3) {
-                    if (!data.hourly[i]) break;
-                    const h = data.hourly[i];
-                    const hr = new Date(h.time).getHours().toString().padStart(2, '0') + ':00';
-                    html += `
-                        <div class="hourly-item">
-                            <span class="h-time">${hr}</span>
-                            <span class="h-icon">${getIcon(h.code)}</span>
-                            <span class="h-temp">${h.temp}°</span>
-                        </div>
-                    `;
+                    if (!data.hourly[i]) break; const h = data.hourly[i]; const hr = new Date(h.time).getHours().toString().padStart(2, '0') + ':00';
+                    html += `<div class="hourly-item"><span class="h-time">${hr}</span><span class="h-icon">${getIcon(h.code)}</span><span class="h-temp">${h.temp}°</span></div>`;
                 }
-                document.getElementById('hourly-list').innerHTML = html;
-                this.updateStatus('card-weather', status, timestamp);
+                document.getElementById('hourly-list').innerHTML = html; this.updateStatus('card-weather', status, timestamp);
             }
         }
 
-        // Initialize Application
-        document.addEventListener('DOMContentLoaded', () => new Dashboard());
+        // Global instance for inline onclick handlers
+        let dashboardApp;
+        document.addEventListener('DOMContentLoaded', () => { dashboardApp = new Dashboard(); });
     </script>
 </body>
 </html>
