@@ -2,12 +2,12 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive OS | Dark Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Executive OS | Mobile Ready</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* True Black Dark Mode */
+        /* True Black Dark Mode & K-Color */
         :root {
             --bg-base: #000000;
             --bg-panel: #111111;
@@ -22,89 +22,108 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-base); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-base); color: var(--text-main); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
         
-        /* 1. Macro Ticker (Top Bar) */
-        .macro-ticker { background: var(--bg-base); border-bottom: 1px solid var(--border-color); display: flex; font-family: 'Consolas', monospace; font-size: 0.85rem; font-weight: 700; white-space: nowrap; padding: 0 1.5rem; align-items: center; height: 36px; overflow: hidden; }
-        .ticker-label { color: var(--accent-blue); margin-right: 1.5rem; }
-        .ticker-item { margin-right: 2rem; display: flex; gap: 0.5rem; align-items: center; }
-        .up { color: var(--k-up); } .down { color: var(--k-down); }
+        /* 1. Real-time Ticker Tape (TradingView) */
+        .ticker-wrapper { border-bottom: 1px solid var(--border-color); background: var(--bg-base); height: 46px; }
 
         /* Main Container */
-        .main-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; flex: 1; overflow-y: auto; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
 
         /* 2. Header & AI Briefing */
-        header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem; }
         .header-left h1 { font-size: 1.6rem; font-weight: 800; }
         .header-left p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
         .header-right { text-align: right; }
-        .time { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+        .time { font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
         .date { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.4rem; font-weight: 600; }
 
-        .ai-banner { background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); border-left: 4px solid var(--accent-purple); padding: 1rem 1.5rem; border-radius: 8px; display: flex; align-items: center; gap: 1rem; }
-        .ai-icon { color: var(--accent-purple); font-size: 1.5rem; }
-        .ai-text { font-weight: 600; font-size: 0.95rem; line-height: 1.4; color: var(--text-main); }
+        .ai-banner { background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); border-left: 4px solid var(--accent-purple); padding: 1rem 1.5rem; border-radius: 8px; display: flex; align-items: flex-start; gap: 1rem; }
+        .ai-icon { color: var(--accent-purple); font-size: 1.5rem; margin-top: 2px; }
+        .ai-text { font-weight: 600; font-size: 0.95rem; line-height: 1.5; color: var(--text-main); }
 
-        /* 3. Dashboard Grid (3-Column Layout) */
-        .dashboard-grid { display: grid; grid-template-columns: 320px 1fr 350px; gap: 1.5rem; align-items: stretch; height: calc(100vh - 200px); }
-        @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: 1fr; height: auto; } body { overflow: auto; } }
+        /* 3. Responsive Grid */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start; }
         
         .panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
-        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; font-weight: 800; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; text-transform: uppercase; letter-spacing: 1px; }
+        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; background: #0a0a0a; display: flex; align-items: center; gap: 0.5rem;}
+        .panel-header i { color: var(--accent-blue); }
 
-        /* Left Panel: Weather & Environment */
-        .weather-current { padding: 2rem 1.5rem; text-align: center; border-bottom: 1px solid var(--border-color); }
-        .w-icon { font-size: 4rem; margin-bottom: 1rem; }
-        .w-temp { font-size: 3rem; font-weight: 800; line-height: 1; margin-bottom: 0.5rem; }
-        .w-desc { color: var(--text-muted); font-size: 1rem; font-weight: 600; }
-        .w-location { margin-top: 1rem; font-size: 0.85rem; color: var(--accent-blue); font-weight: 700; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+        /* Weather Panel */
+        .weather-current { padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .w-icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
+        .w-temp { font-size: 2.5rem; font-weight: 800; line-height: 1; margin-bottom: 0.5rem; }
+        .w-desc { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
+        .w-location { margin-top: 1rem; font-size: 0.85rem; color: var(--accent-blue); font-weight: 700; display:flex; align-items:center; gap:0.5rem; }
 
-        .weather-hourly { display: flex; overflow-x: auto; padding: 1.5rem; gap: 1.5rem; scrollbar-width: none; }
+        .weather-hourly { display: flex; overflow-x: auto; padding: 1.2rem; gap: 1.2rem; scrollbar-width: none; }
         .weather-hourly::-webkit-scrollbar { display: none; }
-        .h-item { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; min-width: 50px; }
-        .h-time { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-        .h-icon { font-size: 1.5rem; }
-        .h-temp { font-size: 1rem; font-weight: 700; }
+        .h-item { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; min-width: 45px; }
+        .h-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+        .h-icon { font-size: 1.2rem; }
+        .h-temp { font-size: 0.9rem; font-weight: 700; }
 
-        .kpi-row { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); }
-        .kpi-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
-        .kpi-val { font-size: 1.2rem; font-weight: 800; display:flex; align-items:center; gap:0.5rem;}
-
-        /* Center Panel: Market Terminal */
-        .chart-container { flex: 1; padding: 0; background: var(--bg-base); position: relative; }
-
-        /* Right Panel: Action & News */
-        .todo-list { border-bottom: 4px solid var(--border-color); }
-        .todo-item { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; }
+        /* To-Do Panel */
+        .todo-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; }
         .todo-item:last-child { border-bottom: none; }
-        .todo-icon { color: var(--accent-blue); font-size: 1.2rem; margin-top: 2px; }
+        .todo-icon { color: var(--accent-blue); font-size: 1.1rem; margin-top: 2px; }
         .todo-content { flex: 1; }
-        .todo-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--text-main); }
+        .todo-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
         .todo-time { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
 
-        .news-list { flex: 1; overflow-y: auto; }
-        .news-item { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; transition: background 0.2s; text-decoration: none; color: inherit; }
+        /* Market & ISDRAM Panel */
+        .isdram-row { padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; background: rgba(139, 92, 246, 0.05); border-bottom: 1px solid var(--border-color); }
+        .isdram-label { font-size: 0.85rem; font-weight: 700; color: var(--accent-purple); display:flex; align-items:center; gap:0.5rem;}
+        .isdram-val { font-size: 1.2rem; font-weight: 800; display:flex; align-items:center; gap:0.5rem;}
+
+        .chart-wrapper { height: 320px; padding: 0; }
+
+        /* News Panel */
+        .news-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.8rem; align-items: flex-start; text-decoration: none; color: inherit; transition: background 0.2s; }
         .news-item:hover { background: var(--bg-hover); }
-        .news-icon { color: var(--text-muted); font-size: 1.2rem; margin-top: 2px; }
+        .news-icon { color: var(--text-muted); font-size: 1.1rem; margin-top: 2px; }
         .news-title { font-weight: 600; font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.4rem; }
         .news-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .header-right { text-align: left; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="macro-ticker">
-        <span class="ticker-label"><i class="fa-solid fa-server"></i> LIVE SYSTEM</span>
-        <div class="ticker-item">KOSPI <span class="up">2,812.50</span> <span class="up">+0.69%</span></div>
-        <div class="ticker-item">S&P 500 <span class="down">5,464.62</span> <span class="down">-0.16%</span></div>
-        <div class="ticker-item">USDKRW <span class="up">1,388.50</span> <span class="up">+1.50</span></div>
-        <div class="ticker-item">ISDRAM <span class="up">1,425.80 (+2.45%)</span></div>
+    <div class="ticker-wrapper">
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+            {
+            "symbols": [
+                { "proName": "KRX:KOSPI", "title": "코스피" },
+                { "proName": "KRX:KOSDAQ", "title": "코스닥" },
+                { "proName": "AMEX:SPY", "title": "S&P 500" },
+                { "proName": "NASDAQ:QQQ", "title": "나스닥 100" },
+                { "proName": "FX_IDC:USDKRW", "title": "원/달러" },
+                { "proName": "FX_IDC:JPYKRW", "title": "원/엔" }
+            ],
+            "showSymbolLogo": true,
+            "isTransparent": true,
+            "displayMode": "adaptive",
+            "colorTheme": "dark",
+            "locale": "kr"
+            }
+            </script>
+        </div>
     </div>
 
-    <div class="main-container">
+    <div class="container">
         <header>
             <div class="header-left">
-                <h1>Executive Command Center</h1>
-                <p>일상을 통제하고 결정을 자동화하십시오.</p>
+                <h1>Command Center</h1>
+                <p>데이터 기반 의사결정을 위한 모바일 인텔리전스</p>
             </div>
             <div class="header-right">
                 <div class="time" id="time">--:--</div>
@@ -114,34 +133,60 @@
 
         <div class="ai-banner">
             <div class="ai-icon"><i class="fa-solid fa-sparkles"></i></div>
-            <div class="ai-text" id="ai-insight">AI가 현재 위치(부산) 기상과 일정을 동기화하여 분석 중입니다...</div>
+            <div class="ai-text" id="ai-insight">AI가 현재 접속하신 위치의 기상과 일정을 동기화하여 분석하고 있습니다...</div>
         </div>
 
         <div class="dashboard-grid">
             
-            <div class="panel">
-                <div class="panel-header">
-                    <span><i class="fa-solid fa-location-dot"></i> Local Environment</span>
-                </div>
-                <div class="weather-current">
-                    <div class="w-icon" id="w-icon-now">⏳</div>
-                    <div class="w-temp" id="w-temp-now">--°</div>
-                    <div class="w-desc" id="w-desc-main">기상 정보 로딩 중</div>
-                    <div class="w-location" id="w-location"><i class="fa-solid fa-crosshairs"></i> 위치 확인 중</div>
-                </div>
-                <div class="weather-hourly" id="hourly-container">
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div class="panel">
+                    <div class="panel-header"><i class="fa-solid fa-location-dot"></i> Local Environment</div>
+                    <div class="weather-current">
+                        <div class="w-icon" id="w-icon-now">⏳</div>
+                        <div class="w-temp" id="w-temp-now">--°</div>
+                        <div class="w-desc" id="w-desc-main">기상 정보 로딩 중</div>
+                        <div class="w-location" id="w-location"><i class="fa-solid fa-crosshairs"></i> 위치 확인 중</div>
                     </div>
-                <div class="kpi-row" style="border-top: 1px solid var(--border-color);">
-                    <div class="kpi-label">ISDRAM INDEX</div>
-                    <div class="kpi-val"><i class="fa-solid fa-microchip" style="color:var(--text-muted);"></i> 1,425.80 <span class="up" style="font-size:0.8rem;">(+2.45%)</span></div>
+                    <div class="weather-hourly" id="hourly-container">
+                        <div class="h-item"><div class="h-time">로딩중</div><div class="h-icon">⏳</div><div class="h-temp">--°</div></div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header"><i class="fa-solid fa-list-check"></i> Today's Action</div>
+                    <div>
+                        <div class="todo-item">
+                            <div class="todo-icon"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="todo-content">
+                                <div class="todo-title">주간 업무 보고 회의 참석</div>
+                                <div class="todo-time">오전 10:00</div>
+                            </div>
+                        </div>
+                        <div class="todo-item">
+                            <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
+                            <div class="todo-content">
+                                <div class="todo-title" style="color:var(--text-muted);">신규 프로젝트 킥오프 미팅</div>
+                                <div class="todo-time">오후 02:00</div>
+                            </div>
+                        </div>
+                        <div class="todo-item">
+                            <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
+                            <div class="todo-content">
+                                <div class="todo-title" style="color:var(--text-muted);">헬스장 (하체 운동)</div>
+                                <div class="todo-time">오후 06:30</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="panel">
-                <div class="panel-header">
-                    <span><i class="fa-solid fa-chart-pie"></i> Market Terminal</span>
+                <div class="panel-header"><i class="fa-solid fa-chart-pie"></i> Market Summary</div>
+                <div class="isdram-row">
+                    <div class="isdram-label"><i class="fa-solid fa-microchip"></i> ISDRAM INDEX</div>
+                    <div class="isdram-val">1,425.80 <span style="color:var(--k-up); font-size:0.85rem;">(+2.45%)</span></div>
                 </div>
-                <div class="chart-container">
+                <div class="chart-wrapper">
                     <div class="tradingview-widget-container" style="height:100%; width:100%;">
                         <div class="tradingview-widget-container__widget" style="height:100%; width:100%;"></div>
                         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
@@ -159,9 +204,8 @@
                             {
                                 "title": "주요 지수",
                                 "symbols": [
-                                    { "s": "KRX:102110", "d": "코스피 (TIGER 200)" },
-                                    { "s": "NASDAQ:QQQ", "d": "나스닥 100" },
-                                    { "s": "AMEX:DIA", "d": "다우존스" }
+                                    { "s": "KRX:102110", "d": "코스피 200" },
+                                    { "s": "NASDAQ:QQQ", "d": "나스닥 100" }
                                 ]
                             },
                             {
@@ -179,37 +223,8 @@
             </div>
 
             <div class="panel">
-                <div class="panel-header">
-                    <span><i class="fa-solid fa-list-check"></i> Today's Action</span>
-                </div>
-                <div class="todo-list">
-                    <div class="todo-item">
-                        <div class="todo-icon"><i class="fa-solid fa-circle-check"></i></div>
-                        <div class="todo-content">
-                            <div class="todo-title">주간 업무 보고 회의 참석</div>
-                            <div class="todo-time">오전 10:00</div>
-                        </div>
-                    </div>
-                    <div class="todo-item">
-                        <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
-                        <div class="todo-content">
-                            <div class="todo-title" style="color:var(--text-muted);">신규 프로젝트 킥오프 미팅</div>
-                            <div class="todo-time">오후 02:00</div>
-                        </div>
-                    </div>
-                    <div class="todo-item">
-                        <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
-                        <div class="todo-content">
-                            <div class="todo-title" style="color:var(--text-muted);">헬스장 (하체 운동)</div>
-                            <div class="todo-time">오후 06:30</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel-header" style="border-top: none;">
-                    <span><i class="fa-regular fa-newspaper"></i> Live Feed</span>
-                </div>
-                <div class="news-list" id="news-container">
+                <div class="panel-header"><i class="fa-regular fa-newspaper"></i> Live Feed</div>
+                <div id="news-container">
                     <div class="news-item"><div class="news-title">뉴스를 불러오는 중입니다...</div></div>
                 </div>
             </div>
@@ -230,7 +245,7 @@
         }
         setInterval(updateTime, 1000); updateTime();
 
-        // 날씨 아이콘 헬퍼
+        // 2. Weather & AI Context
         function getWeatherDetails(code) {
             if (code >= 0 && code <= 1) return { icon: '☀️', desc: '맑음' };
             if (code >= 2 && code <= 3) return { icon: '⛅', desc: '구름 조금' };
@@ -241,7 +256,6 @@
             return { icon: '☁️', desc: '흐림' };
         }
 
-        // 2. Weather & AI Context
         async function fetchWeather(lat, lon, locName) {
             try {
                 const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`;
@@ -253,13 +267,11 @@
                 const minTemp = Math.round(data.daily.temperature_2m_min[0]);
                 const currentInfo = getWeatherDetails(data.current.weather_code);
 
-                // Update UI
                 document.getElementById('w-location').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${locName}`;
                 document.getElementById('w-icon-now').innerText = currentInfo.icon;
                 document.getElementById('w-temp-now').innerText = `${currentTemp}°`;
                 document.getElementById('w-desc-main').innerText = `${currentInfo.desc} · 최고 ${maxTemp}° / 최저 ${minTemp}°`;
 
-                // Hourly
                 const currentHourStr = data.current.time.substring(0, 13);
                 const hourlyTimes = data.hourly.time;
                 let startIndex = hourlyTimes.findIndex(t => t.startsWith(currentHourStr));
@@ -284,11 +296,11 @@
                 }
                 document.getElementById('hourly-container').innerHTML = hourlyHtml;
 
-                // AI Insight Logic
+                // AI Insight
                 const aiEl = document.getElementById('ai-insight');
                 const isRaining = data.current.weather_code >= 51 && data.current.weather_code <= 95;
                 if(isRaining) {
-                    aiEl.innerHTML = `현재 <span style="color:var(--accent-blue);">비가 내리고 있습니다.</span> 외근 시 교통 체증이 예상되므로, 오후 2시 '신규 프로젝트 킥오프'를 화상 미팅으로 전환할 것을 권장합니다.`;
+                    aiEl.innerHTML = `현재 <span style="color:var(--accent-blue);">비가 내리고 있습니다.</span> 외근 시 교통 체증이 예상되므로, 오후 미팅을 화상으로 전환할 것을 권장합니다.`;
                 } else {
                     aiEl.innerHTML = `오늘 기상은 <span style="color:var(--accent-purple);">활동하기 좋은 맑은 상태</span>입니다. 오후 6시 30분 '하체 운동' 일정을 소화하기 완벽한 날씨입니다.`;
                 }
@@ -313,7 +325,7 @@
             );
         } else { fetchWeather(35.1796, 129.0756, "부산 (기본값)"); }
 
-        // 3. General Economic News
+        // 3. News Feed
         async function fetchNews() {
             try {
                 const rssUrl = 'https://www.mk.co.kr/rss/30000001/';
@@ -323,7 +335,7 @@
                 
                 if(data.status === 'ok') {
                     let html = '';
-                    data.items.slice(0, 5).forEach(item => {
+                    data.items.slice(0, 6).forEach(item => {
                         const d = new Date(item.pubDate);
                         const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
                         html += `
