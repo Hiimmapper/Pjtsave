@@ -3,323 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Executive OS | Mobile Core</title>
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Ambient Morning Dashboard</title>
     <style>
-        /* True Black Dark Mode & K-Color */
-        :root {
-            --bg-base: #000000;
-            --bg-panel: #111111;
-            --bg-hover: #1e1e1e;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #27272a;
-            --accent-blue: #3b82f6;
-            --accent-purple: #8b5cf6;
-            --k-up: #ef4444;       
-            --k-down: #3b82f6;     
+        /* 프리미엄 미니멀리즘 다크 테마 */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #000000;
+            color: #EAEAEA;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+            overflow: hidden;
+            transition: transform 0.5s ease; /* 번인 방지 픽셀 시프트를 위한 애니메이션 */
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-base); color: var(--text-main); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-        
-        /* 1. Real-time Ticker Tape */
-        .ticker-wrapper { border-bottom: 1px solid var(--border-color); background: var(--bg-base); height: 46px; }
+        /* 1. 상단 시계 & 현재 날씨 영역 */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #1A1A1A;
+            padding-bottom: 20px;
+        }
+        .time-box h1 {
+            font-size: 4.2rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+            line-height: 1;
+            color: #ffffff;
+        }
+        .time-box p {
+            font-size: 1.1rem;
+            color: #888888;
+            margin-top: 6px;
+            font-weight: 400;
+        }
+        .current-weather {
+            text-align: right;
+        }
+        .current-weather .temp {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #ffffff;
+        }
+        .current-weather .desc {
+            font-size: 0.9rem;
+            color: #888888;
+        }
 
-        /* Main Container */
-        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        /* 2. 중단 1: 확장된 시간대별 날씨 (가로 스크롤 카드) */
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #555555;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .hourly-container {
+            margin: 15px 0;
+        }
+        .hourly-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 12px;
+            padding-bottom: 10px;
+            scrollbar-width: none; /* 파이어폭스용 */
+        }
+        .hourly-scroll::-webkit-scrollbar { display: none; /* 크롬/사파리용 */ }
+        .hourly-card {
+            min-width: 75px;
+            background: #0A0A0A;
+            border: 1px solid #161616;
+            border-radius: 12px;
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .hourly-card .h-time { font-size: 0.8rem; color: #888888; margin-bottom: 6px; }
+        .hourly-card .h-icon { font-size: 1.5rem; margin: 4px 0; }
+        .hourly-card .h-temp { font-size: 1rem; font-weight: 600; color: #ffffff; }
 
-        /* 2. Header & AI Briefing */
-        header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 1rem; }
-        .header-left h1 { font-size: 1.6rem; font-weight: 800; }
-        .header-left p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
-        .header-right { text-align: right; }
-        .time { font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
-        .date { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.4rem; font-weight: 600; }
+        /* 3. 중단 2: 실시간 이슈 주요 뉴스 (롤링 애니메이션) */
+        .news-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin: 15px 0;
+            min-height: 120px;
+        }
+        .news-wrapper {
+            position: relative;
+            height: 70px;
+            overflow: hidden;
+        }
+        .news-item {
+            font-size: 1.35rem;
+            line-height: 1.45;
+            font-weight: 500;
+            color: #E5E5E5;
+            word-break: keep-all;
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .news-item.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-        .ai-banner { background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); border-left: 4px solid var(--accent-purple); padding: 1rem 1.5rem; border-radius: 8px; display: flex; align-items: flex-start; gap: 1rem; }
-        .ai-icon { color: var(--accent-purple); font-size: 1.5rem; margin-top: 2px; }
-        .ai-text { font-weight: 600; font-size: 0.95rem; line-height: 1.5; color: var(--text-main); }
-
-        /* 3. Responsive Grid */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; align-items: start; }
-        
-        .panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
-        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; background: #0a0a0a; display: flex; align-items: center; gap: 0.5rem;}
-        .panel-header i { color: var(--accent-blue); }
-
-        /* Weather Panel */
-        .weather-current { padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .w-icon { font-size: 3.5rem; margin-bottom: 0.5rem; }
-        .w-temp { font-size: 2.5rem; font-weight: 800; line-height: 1; margin-bottom: 0.5rem; }
-        .w-desc { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
-        .w-location { margin-top: 1rem; font-size: 0.85rem; color: var(--accent-blue); font-weight: 700; display:flex; align-items:center; gap:0.5rem; }
-
-        .weather-hourly { display: flex; overflow-x: auto; padding: 1.2rem; gap: 1.2rem; scrollbar-width: none; }
-        .weather-hourly::-webkit-scrollbar { display: none; }
-        .h-item { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; min-width: 45px; }
-        .h-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-        .h-icon { font-size: 1.2rem; }
-        .h-temp { font-size: 0.9rem; font-weight: 700; }
-
-        /* Market & ISDRAM Panel */
-        .isdram-row { padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; background: rgba(139, 92, 246, 0.05); border-bottom: 1px solid var(--border-color); }
-        .isdram-label { font-size: 0.85rem; font-weight: 700; color: var(--accent-purple); display:flex; align-items:center; gap:0.5rem;}
-        .isdram-val { font-size: 1.2rem; font-weight: 800; display:flex; align-items:center; gap:0.5rem;}
-
-        .chart-wrapper { height: 320px; padding: 0; }
-
-        /* News Panel */
-        .news-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 0.8rem; align-items: flex-start; text-decoration: none; color: inherit; transition: background 0.2s; }
-        .news-item:hover { background: var(--bg-hover); }
-        .news-icon { color: var(--text-muted); font-size: 1.1rem; margin-top: 2px; }
-        .news-title { font-weight: 600; font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.4rem; }
-        .news-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
-
-        /* Mobile Adjustments */
-        @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .header-right { text-align: left; }
-            .dashboard-grid { grid-template-columns: 1fr; }
+        /* 4. 하단: 경제 지표 금융 전광판 */
+        .economy-container {
+            border-top: 1px solid #1A1A1A;
+            padding-top: 15px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
 
-    <div class="ticker-wrapper">
+    <div class="header-container">
+        <div class="time-box">
+            <h1 id="txt-time">00:00</h1>
+            <p id="txt-date">로딩 중...</p>
+        </div>
+        <div class="current-weather">
+            <div class="temp" id="cur-temp">--°</div>
+            <div class="desc" id="cur-location">위치 찾는 중...</div>
+        </div>
+    </div>
+
+    <div class="hourly-container">
+        <div class="section-title">Hourly Forecast</div>
+        <div class="hourly-scroll" id="hourly-wrapper">
+            <div class="hourly-card" style="width:100%;"><span class="h-time" style="color:#aaa;">날씨 정보를 불러오는 중입니다...</span></div>
+        </div>
+    </div>
+
+    <div class="news-container">
+        <div class="section-title">Latest Top Stories</div>
+        <div class="news-wrapper" id="news-wrapper">
+            <div class="news-item active">실시간 주요 이슈를 불러오는 중입니다...</div>
+        </div>
+    </div>
+
+    <div class="economy-container">
+        <div class="section-title">Market Overview</div>
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
             {
-            "symbols": [
-                { "proName": "TVC:KOSPI", "title": "코스피" },
-                { "proName": "TVC:KOSDAQ", "title": "코스닥" },
-                { "proName": "AMEX:SPY", "title": "S&P 500" },
-                { "proName": "NASDAQ:QQQ", "title": "나스닥 100" },
-                { "proName": "FX_IDC:USDKRW", "title": "원/달러" },
-                { "proName": "FX_IDC:JPYKRW", "title": "원/엔" }
-            ],
-            "showSymbolLogo": true,
-            "isTransparent": true,
-            "displayMode": "adaptive",
-            "colorTheme": "dark",
-            "locale": "kr"
+                "symbols": [
+                    { "description": "코스피", "proName": "KRX:KOSPI" },
+                    { "description": "S&P 500", "proName": "FOREXCOM:SPXUSD" },
+                    { "description": "나스닥 100", "proName": "NASDAQ:NDX" },
+                    { "description": "원/달러 환율", "proName": "FX_IDC:USDKRW" },
+                    { "description": "비트코인", "proName": "BINANCE:BTCUSDT" }
+                ],
+                "showSymbolLogo": true,
+                "colorTheme": "dark",
+                "isTransparent": true,
+                "displayMode": "adaptive",
+                "locale": "kr"
             }
             </script>
         </div>
     </div>
 
-    <div class="container">
-        <header>
-            <div class="header-left">
-                <h1>Command Center</h1>
-                <p>데이터 기반 의사결정을 위한 모바일 인텔리전스</p>
-            </div>
-            <div class="header-right">
-                <div class="time" id="time">--:--</div>
-                <div class="date" id="date">로딩 중...</div>
-            </div>
-        </header>
-
-        <div class="ai-banner">
-            <div class="ai-icon"><i class="fa-solid fa-sparkles"></i></div>
-            <div class="ai-text" id="ai-insight">AI가 현재 접속하신 위치의 기상과 글로벌 시장 데이터를 동기화하여 분석하고 있습니다...</div>
-        </div>
-
-        <div class="dashboard-grid">
-            
-            <div class="panel">
-                <div class="panel-header"><i class="fa-solid fa-location-dot"></i> Local Environment</div>
-                <div class="weather-current">
-                    <div class="w-icon" id="w-icon-now">⏳</div>
-                    <div class="w-temp" id="w-temp-now">--°</div>
-                    <div class="w-desc" id="w-desc-main">기상 정보 로딩 중</div>
-                    <div class="w-location" id="w-location"><i class="fa-solid fa-crosshairs"></i> 위치 확인 중</div>
-                </div>
-                <div class="weather-hourly" id="hourly-container">
-                    <div class="h-item"><div class="h-time">로딩중</div><div class="h-icon">⏳</div><div class="h-temp">--°</div></div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header"><i class="fa-solid fa-chart-pie"></i> Market Summary</div>
-                <div class="isdram-row">
-                    <div class="isdram-label"><i class="fa-solid fa-microchip"></i> ISDRAM INDEX</div>
-                    <div class="isdram-val">1,425.80 <span style="color:var(--k-up); font-size:0.85rem;">(+2.45%)</span></div>
-                </div>
-                <div class="chart-wrapper">
-                    <div class="tradingview-widget-container" style="height:100%; width:100%;">
-                        <div class="tradingview-widget-container__widget" style="height:100%; width:100%;"></div>
-                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-                        {
-                            "colorTheme": "dark",
-                            "dateRange": "1D",
-                            "showChart": true,
-                            "locale": "kr",
-                            "width": "100%",
-                            "height": "100%",
-                            "isTransparent": true,
-                            "showSymbolLogo": true,
-                            "showFloatingTooltip": true,
-                            "tabs": [
-                            {
-                                "title": "주요 지수",
-                                "symbols": [
-                                    { "s": "TVC:KOSPI", "d": "코스피" },
-                                    { "s": "TVC:KOSDAQ", "d": "코스닥" },
-                                    { "s": "NASDAQ:QQQ", "d": "나스닥 100" },
-                                    { "s": "AMEX:SPY", "d": "S&P 500" }
-                                ]
-                            },
-                            {
-                                "title": "환율",
-                                "symbols": [
-                                    { "s": "FX_IDC:USDKRW", "d": "원/달러" },
-                                    { "s": "FX_IDC:JPYKRW", "d": "원/엔" },
-                                    { "s": "FX_IDC:CNYKRW", "d": "원/위안" }
-                                ]
-                            }
-                            ]
-                        }
-                        </script>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel">
-                <div class="panel-header"><i class="fa-regular fa-newspaper"></i> Live Feed</div>
-                <div id="news-container">
-                    <div class="news-item"><div class="news-title">뉴스를 불러오는 중입니다...</div></div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
     <script>
-        // 1. Time Update
-        function updateTime() {
-            const now = new Date();
-            const days = ['일', '월', '화', '수', '목', '금', '토'];
-            document.getElementById('date').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
-            let hours = now.getHours();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            document.getElementById('time').innerText = `${String(hours).padStart(2,'0')}:${String(now.getMinutes()).padStart(2, '0')} ${ampm}`;
-        }
-        setInterval(updateTime, 1000); updateTime();
+        // 코드 커스텀 매개변수 설정 (제공해주신 API 키 적용 완료)
+        const OPENWEATHER_API_KEY = '3d64d44f9efaef9fff346626e18910c7';
 
-        // 2. Weather & AI Context
-        function getWeatherDetails(code) {
-            if (code >= 0 && code <= 1) return { icon: '☀️', desc: '맑음' };
-            if (code >= 2 && code <= 3) return { icon: '⛅', desc: '구름 조금' };
-            if (code >= 45 && code <= 48) return { icon: '🌫️', desc: '안개' };
-            if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { icon: '🌧️', desc: '비' };
-            if (code >= 71 && code <= 86) return { icon: '❄️', desc: '눈' };
-            if (code >= 95) return { icon: '⛈️', desc: '천둥번개' };
-            return { icon: '☁️', desc: '흐림' };
-        }
-
-        async function fetchWeather(lat, lon, locName) {
-            try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                const currentTemp = Math.round(data.current.temperature_2m);
-                const maxTemp = Math.round(data.daily.temperature_2m_max[0]);
-                const minTemp = Math.round(data.daily.temperature_2m_min[0]);
-                const currentInfo = getWeatherDetails(data.current.weather_code);
-
-                document.getElementById('w-location').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${locName}`;
-                document.getElementById('w-icon-now').innerText = currentInfo.icon;
-                document.getElementById('w-temp-now').innerText = `${currentTemp}°`;
-                document.getElementById('w-desc-main').innerText = `${currentInfo.desc} · 최고 ${maxTemp}° / 최저 ${minTemp}°`;
-
-                const currentHourStr = data.current.time.substring(0, 13);
-                const hourlyTimes = data.hourly.time;
-                let startIndex = hourlyTimes.findIndex(t => t.startsWith(currentHourStr));
-                if(startIndex === -1) startIndex = 0;
-
-                let hourlyHtml = '';
-                for(let i = startIndex + 1; i <= startIndex + 6; i++) {
-                    if(!hourlyTimes[i]) break;
-                    const hObj = new Date(hourlyTimes[i]);
-                    let h = hObj.getHours();
-                    const ampm = h >= 12 ? 'PM' : 'AM';
-                    h = h % 12 || 12;
-                    const hTemp = Math.round(data.hourly.temperature_2m[i]);
-                    const hInfo = getWeatherDetails(data.hourly.weather_code[i]);
-
-                    hourlyHtml += `
-                    <div class="h-item">
-                        <div class="h-time">${h} ${ampm}</div>
-                        <div class="h-icon">${hInfo.icon}</div>
-                        <div class="h-temp">${hTemp}°</div>
-                    </div>`;
-                }
-                document.getElementById('hourly-container').innerHTML = hourlyHtml;
-
-                // AI Insight
-                const aiEl = document.getElementById('ai-insight');
-                const isRaining = data.current.weather_code >= 51 && data.current.weather_code <= 95;
-                if(isRaining) {
-                    aiEl.innerHTML = `현재 <span style="color:var(--accent-blue);">비가 내리고 있습니다.</span> 외부 활동을 줄이고 주요 시장 지표와 글로벌 증시 변동성에 집중하기 좋은 날씨입니다.`;
-                } else {
-                    aiEl.innerHTML = `오늘 기상은 <span style="color:var(--accent-purple);">활동하기 좋은 맑은 상태</span>입니다. 쾌적한 날씨와 함께 성공적인 시장 분석과 하루를 계획해 보십시오.`;
-                }
-
-            } catch (error) {
-                document.getElementById('w-desc-main').innerText = "날씨 정보 오류";
+        // 1. 실시간 시계 설정 (1초 주기 업데이트)
+        function initClock() {
+            const txtTime = document.getElementById('txt-time');
+            const txtDate = document.getElementById('txt-date');
+            
+            function update() {
+                const now = new Date();
+                txtTime.innerText = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
+                txtDate.innerText = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
             }
+            setInterval(update, 1000);
+            update();
         }
 
-        async function getCityName(lat, lon) {
-            try {
-                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
-                const data = await res.json();
-                return data.locality || data.city || "현재 위치";
-            } catch(e) { return "현재 위치"; }
-        }
+        // 2. GPS 위치 기반 날씨 가져오기 (OpenWeatherMap 5 day / 3 hour forecast API 이용)
+        function initWeather() {
+            if (!navigator.geolocation) {
+                document.getElementById('cur-location').innerText = "GPS 미지원 기기";
+                fallbackWeather();
+                return;
+            }
 
-        if (navigator.geolocation) {
+            // 최초 로딩 속도를 높이기 위해 캐시된 위치 정보(maximumAge)를 먼저 활용합니다.
             navigator.geolocation.getCurrentPosition(
-                async (p) => { const loc = await getCityName(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude, loc); },
-                () => fetchWeather(35.1796, 129.0756, "부산 (기본값)")
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    fetchWeatherData(lat, lon);
+                },
+                (error) => {
+                    console.error("GPS 권한 거부 또는 오류, 기본 좌표로 불러옵니다.", error);
+                    fallbackWeather();
+                },
+                { enableHighAccuracy: false, maximumAge: 600000, timeout: 10000 }
             );
-        } else { fetchWeather(35.1796, 129.0756, "부산 (기본값)"); }
+        }
 
-        // 3. News Feed
-        async function fetchNews() {
+        function fallbackWeather() {
+            // 권한 거부 시 기본값 (대한민국 부산 좌표 기준 - 접속 위치 반영)
+            fetchWeatherData(35.1796, 129.0756);
+        }
+
+        async function fetchWeatherData(lat, lon) {
             try {
-                const rssUrl = 'https://www.mk.co.kr/rss/30000001/';
-                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-                const res = await fetch(apiUrl);
-                const data = await res.json();
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=kr`);
+                const data = await response.json();
                 
-                if(data.status === 'ok') {
-                    let html = '';
-                    data.items.slice(0, 6).forEach(item => {
-                        const d = new Date(item.pubDate);
-                        const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-                        html += `
-                        <a href="${item.link}" target="_blank" class="news-item">
-                            <div class="news-icon"><i class="fa-regular fa-newspaper"></i></div>
-                            <div style="flex:1;">
-                                <div class="news-title">${item.title}</div>
-                                <div class="news-meta">매일경제 · ${timeStr}</div>
-                            </div>
-                        </a>`;
-                    });
-                    document.getElementById('news-container').innerHTML = html;
+                if (data.cod !== "200") {
+                    throw new Error("날씨 API 호출 오류: " + data.message);
                 }
-            } catch (error) {
-                document.getElementById('news-container').innerHTML = '<div class="news-item">뉴스 로드 실패</div>';
+
+                // 현재 날씨 처리 (첫 번째 데이터 활용)
+                const current = data.list[0];
+                document.getElementById('cur-temp').innerText = `${Math.round(current.main.temp)}°`;
+                document.getElementById('cur-location').innerText = data.city.name;
+
+                // 시간대별 날씨 배열 처리 (상위 7개 아이템 = 향후 약 21시간 예보)
+                const hourlyWrapper = document.getElementById('hourly-wrapper');
+                hourlyWrapper.innerHTML = ''; // 플레이스홀더 초기화
+
+                const weatherIcons = { "Clear": "☀️", "Clouds": "☁️", "Rain": "🌧️", "Drizzle": "🌧️", "Thunderstorm": "⛈️", "Snow": "❄️", "Atmosphere": "🌫️" };
+                // ⛅(구름조금) 처리를 위해 Clouds 세분화 추가 보정 (선택 사항)
+
+                data.list.slice(0, 7).forEach(item => {
+                    const dateObj = new Date(item.dt * 1000);
+                    let hours = dateObj.getHours();
+                    const ampm = hours >= 12 ? '오후' : '오전';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12; // 0시는 12시로 표시
+                    
+                    const timeStr = `${ampm} ${hours}시`;
+                    const mainWeather = item.weather[0].main;
+                    
+                    // 구름양에 따른 아이콘 디테일 처리
+                    let icon = weatherIcons[mainWeather] || "☀️";
+                    if (mainWeather === "Clouds" && item.clouds.all < 50) {
+                        icon = "⛅"; 
+                    }
+
+                    const temp = `${Math.round(item.main.temp)}°`;
+
+                    const card = document.createElement('div');
+                    card.className = 'hourly-card';
+                    card.innerHTML = `
+                        <span class="h-time">${timeStr}</span>
+                        <span class="h-icon">${icon}</span>
+                        <span class="h-temp">${temp}</span>
+                    `;
+                    hourlyWrapper.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error("날씨 데이터를 가져오지 못했습니다.", err);
+                document.getElementById('cur-location').innerText = "날씨 로드 실패";
             }
         }
-        fetchNews();
+
+        // 3. 구글 뉴스 RSS 피드 파싱 및 무한 롤링 기능
+        async function initNews() {
+            const newsWrapper = document.getElementById('news-wrapper');
+            const googleNewsRss = encodeURIComponent('https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko');
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${googleNewsRss}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if(data.status === 'ok' && data.items.length > 0) {
+                    newsWrapper.innerHTML = ''; 
+                    
+                    data.items.slice(0, 8).forEach((item, index) => {
+                        const newsEl = document.createElement('div');
+                        newsEl.className = index === 0 ? 'news-item active' : 'news-item';
+                        const cleanTitle = item.title.split(' - ')[0];
+                        newsEl.innerText = cleanTitle;
+                        newsWrapper.appendChild(newsEl);
+                    });
+
+                    startNewsRolling();
+                }
+            } catch (err) {
+                console.error("뉴스를 로드할 수 없습니다.", err);
+            }
+        }
+
+        function startNewsRolling() {
+            let currentIndex = 0;
+            setInterval(() => {
+                const items = document.querySelectorAll('.news-item');
+                if(items.length <= 1) return;
+
+                items[currentIndex].classList.remove('active');
+                currentIndex = (currentIndex + 1) % items.length;
+                items[currentIndex].classList.add('active');
+            }, 7000); // 7초마다 변경
+        }
+
+        // 4. 모바일 기기 화면 꺼짐 방지 (Wake Lock API)
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock 활성화 완료: 화면이 꺼지지 않습니다.');
+                }
+            } catch (err) {
+                console.warn(`Wake Lock 실패: ${err.name}, ${err.message}`);
+            }
+        }
+
+        // 5. 번인 방지(Pixel Shifting) 알고리즘
+        function initAntiBurnIn() {
+            setInterval(() => {
+                const randomX = Math.floor(Math.random() * 7) - 3;
+                const randomY = Math.floor(Math.random() * 7) - 3;
+                document.body.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            }, 300000); // 5분마다 미세 이동
+        }
+
+        // 초기화 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            initClock();
+            initWeather();
+            initNews();
+            initAntiBurnIn();
+            
+            document.body.addEventListener('click', requestWakeLock);
+            requestWakeLock();
+
+            // 데이터 자동 갱신 (날씨는 1시간, 뉴스는 30분 단위)
+            setInterval(initWeather, 3600000); 
+            setInterval(initNews, 1800000);
+        });
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                initWeather();
+                requestWakeLock();
+            }
+        });
     </script>
 </body>
 </html>
