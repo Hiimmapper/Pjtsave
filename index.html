@@ -3,314 +3,345 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alpha Terminal | KOR Edition</title>
+    <title>Executive OS | Dark Edition</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* True Black Dark Mode & K-Color (Up: Red, Down: Blue) */
+        /* True Black Dark Mode */
         :root {
             --bg-base: #000000;
             --bg-panel: #111111;
             --bg-hover: #1e1e1e;
-            --text-main: #e2e8f0;
+            --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --border-color: #27272a;
-            --k-up: #ff3333;       /* 한국형 상승 (빨강) */
-            --k-up-bg: rgba(255, 51, 51, 0.15);
-            --k-down: #3377ff;     /* 한국형 하락 (파랑) */
-            --k-down-bg: rgba(51, 119, 255, 0.15);
-            --k-neutral: #a1a1aa;
-            --accent: #d4d4d8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --k-up: #ef4444;       
+            --k-down: #3b82f6;     
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-base); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
         /* 1. Macro Ticker (Top Bar) */
-        .macro-ticker { background: var(--bg-base); border-bottom: 1px solid var(--border-color); display: flex; font-family: 'Consolas', monospace; font-size: 0.85rem; font-weight: 700; white-space: nowrap; padding: 0 1rem; align-items: center; height: 36px; overflow: hidden; }
-        .ticker-label { color: #f59e0b; margin-right: 1rem; }
+        .macro-ticker { background: var(--bg-base); border-bottom: 1px solid var(--border-color); display: flex; font-family: 'Consolas', monospace; font-size: 0.85rem; font-weight: 700; white-space: nowrap; padding: 0 1.5rem; align-items: center; height: 36px; overflow: hidden; }
+        .ticker-label { color: var(--accent-blue); margin-right: 1.5rem; }
         .ticker-item { margin-right: 2rem; display: flex; gap: 0.5rem; align-items: center; }
         .up { color: var(--k-up); } .down { color: var(--k-down); }
 
-        /* Tick Animation Classes */
-        @keyframes flashUp { 0% { background-color: var(--k-up); color: #fff; } 100% { background-color: transparent; } }
-        @keyframes flashDown { 0% { background-color: var(--k-down); color: #fff; } 100% { background-color: transparent; } }
-        .tick-up { animation: flashUp 0.4s ease-out; border-radius: 2px; padding: 0 2px; }
-        .tick-down { animation: flashDown 0.4s ease-out; border-radius: 2px; padding: 0 2px; }
+        /* Main Container */
+        .main-container { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; flex: 1; overflow-y: auto; }
 
-        /* Layout */
-        .terminal-container { display: grid; grid-template-columns: 320px 1fr 340px; gap: 1px; background: var(--border-color); flex: 1; height: calc(100vh - 36px); }
-        .panel { background: var(--bg-panel); display: flex; flex-direction: column; overflow: hidden; }
-        .panel-header { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; }
+        /* 2. Header & AI Briefing */
+        header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .header-left h1 { font-size: 1.6rem; font-weight: 800; }
+        .header-left p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem; font-weight: 500; }
+        .header-right { text-align: right; }
+        .time { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+        .date { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.4rem; font-weight: 600; }
 
-        /* 2. Theme Tracker (Left Panel) */
-        .search-box { padding: 0.8rem; border-bottom: 1px solid var(--border-color); }
-        .search-input { width: 100%; background: var(--bg-hover); border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 0.8rem; border-radius: 4px; font-size: 0.9rem; outline: none; transition: border 0.2s; }
-        .search-input:focus { border-color: var(--text-muted); }
+        .ai-banner { background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.05)); border: 1px solid rgba(139, 92, 246, 0.2); border-left: 4px solid var(--accent-purple); padding: 1rem 1.5rem; border-radius: 8px; display: flex; align-items: center; gap: 1rem; }
+        .ai-icon { color: var(--accent-purple); font-size: 1.5rem; }
+        .ai-text { font-weight: 600; font-size: 0.95rem; line-height: 1.4; color: var(--text-main); }
+
+        /* 3. Dashboard Grid (3-Column Layout) */
+        .dashboard-grid { display: grid; grid-template-columns: 320px 1fr 350px; gap: 1.5rem; align-items: stretch; height: calc(100vh - 200px); }
+        @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: 1fr; height: auto; } body { overflow: auto; } }
         
-        .stock-list { flex: 1; overflow-y: auto; }
-        .stock-list::-webkit-scrollbar { width: 4px; }
-        .stock-list::-webkit-scrollbar-thumb { background: var(--border-color); }
-        
-        .stock-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.1s; }
-        .stock-item:hover { background: var(--bg-hover); }
-        .stock-info { display: flex; flex-direction: column; gap: 0.2rem; }
-        .stock-name { font-weight: 700; font-size: 0.95rem; }
-        .stock-theme { font-size: 0.7rem; color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); padding: 1px 4px; border-radius: 4px; display: inline-block; width: max-content; }
-        .stock-price-data { text-align: right; display: flex; flex-direction: column; gap: 0.2rem; font-family: 'Consolas', monospace; }
-        .stock-price { font-size: 1rem; font-weight: 800; }
-        .stock-rate { font-size: 0.8rem; font-weight: 600; padding: 2px 4px; border-radius: 2px; }
-        .bg-up { background: var(--k-up-bg); color: var(--k-up); }
-        .bg-down { background: var(--k-down-bg); color: var(--k-down); }
+        .panel { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; font-weight: 800; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* 3. Central Market (Center Panel) */
+        /* Left Panel: Weather & Environment */
+        .weather-current { padding: 2rem 1.5rem; text-align: center; border-bottom: 1px solid var(--border-color); }
+        .w-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .w-temp { font-size: 3rem; font-weight: 800; line-height: 1; margin-bottom: 0.5rem; }
+        .w-desc { color: var(--text-muted); font-size: 1rem; font-weight: 600; }
+        .w-location { margin-top: 1rem; font-size: 0.85rem; color: var(--accent-blue); font-weight: 700; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+
+        .weather-hourly { display: flex; overflow-x: auto; padding: 1.5rem; gap: 1.5rem; scrollbar-width: none; }
+        .weather-hourly::-webkit-scrollbar { display: none; }
+        .h-item { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; min-width: 50px; }
+        .h-time { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        .h-icon { font-size: 1.5rem; }
+        .h-temp { font-size: 1rem; font-weight: 700; }
+
+        .kpi-row { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); }
+        .kpi-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+        .kpi-val { font-size: 1.2rem; font-weight: 800; display:flex; align-items:center; gap:0.5rem;}
+
+        /* Center Panel: Market Terminal */
         .chart-container { flex: 1; padding: 0; background: var(--bg-base); position: relative; }
 
-        /* 4. Right Panel (Calendar & AI News) */
-        .calendar-list { border-bottom: 4px solid var(--border-color); }
-        .cal-item { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .cal-info { display: flex; flex-direction: column; gap: 0.2rem; }
-        .cal-title { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; }
-        .impact-high { color: var(--k-up); font-size: 0.7rem; }
-        .cal-time { font-size: 0.8rem; color: var(--text-muted); }
-        .countdown { font-family: 'Consolas', monospace; font-size: 1.1rem; font-weight: 800; color: #eab308; }
+        /* Right Panel: Action & News */
+        .todo-list { border-bottom: 4px solid var(--border-color); }
+        .todo-item { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; }
+        .todo-item:last-child { border-bottom: none; }
+        .todo-icon { color: var(--accent-blue); font-size: 1.2rem; margin-top: 2px; }
+        .todo-content { flex: 1; }
+        .todo-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--text-main); }
+        .todo-time { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
 
         .news-list { flex: 1; overflow-y: auto; }
-        .news-item { padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem; transition: background 0.2s; cursor: pointer; }
+        .news-item { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; transition: background 0.2s; text-decoration: none; color: inherit; }
         .news-item:hover { background: var(--bg-hover); }
-        .news-header { display: flex; justify-content: space-between; align-items: center; }
-        
-        /* AI NLP Sentiment Badges */
-        .nlp-badge { font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-        .nlp-pos { background: var(--k-up-bg); color: var(--k-up); border: 1px solid var(--k-up); }
-        .nlp-neg { background: var(--k-down-bg); color: var(--k-down); border: 1px solid var(--k-down); }
-        .nlp-neu { background: #3f3f46; color: #d4d4d8; border: 1px solid #52525b; }
-        
-        .news-title { font-size: 0.9rem; font-weight: 600; line-height: 1.4; }
-        .news-tags { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 0.4rem; }
+        .news-icon { color: var(--text-muted); font-size: 1.2rem; margin-top: 2px; }
+        .news-title { font-weight: 600; font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.4rem; }
+        .news-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
     </style>
 </head>
 <body>
 
-    <div class="macro-ticker" id="macro-ticker">
-        <span class="ticker-label"><i class="fa-solid fa-bolt"></i> MACRO LIVE</span>
-        <div class="ticker-item">NQ=F (나스닥선물) <span id="nq-price" class="up">19,845.25</span> <span id="nq-rate" class="up">+0.45%</span></div>
-        <div class="ticker-item">USDKRW (원달러) <span id="usd-price" class="down">1,382.40</span> <span id="usd-rate" class="down">-0.12%</span></div>
-        <div class="ticker-item">US10Y (미국10년물) <span id="y10-price" class="up">4.254</span> <span id="y10-rate" class="up">+0.012</span></div>
-        <div class="ticker-item">BTC 김프 <span id="kimp-price" class="up">2.14%</span></div>
+    <div class="macro-ticker">
+        <span class="ticker-label"><i class="fa-solid fa-server"></i> LIVE SYSTEM</span>
+        <div class="ticker-item">KOSPI <span class="up">2,812.50</span> <span class="up">+0.69%</span></div>
+        <div class="ticker-item">S&P 500 <span class="down">5,464.62</span> <span class="down">-0.16%</span></div>
+        <div class="ticker-item">USDKRW <span class="up">1,388.50</span> <span class="up">+1.50</span></div>
         <div class="ticker-item">ISDRAM <span class="up">1,425.80 (+2.45%)</span></div>
     </div>
 
-    <div class="terminal-container">
-        
-        <div class="panel">
-            <div class="panel-header">
-                <span><i class="fa-solid fa-crosshairs"></i> Theme Tracker</span>
-                <i class="fa-solid fa-filter" style="cursor:pointer; color:var(--text-muted);"></i>
+    <div class="main-container">
+        <header>
+            <div class="header-left">
+                <h1>Executive Command Center</h1>
+                <p>일상을 통제하고 결정을 자동화하십시오.</p>
             </div>
-            <div class="search-box">
-                <input type="text" id="themeSearch" class="search-input" placeholder="테마/종목 검색 (예: AI 반도체)">
+            <div class="header-right">
+                <div class="time" id="time">--:--</div>
+                <div class="date" id="date">로딩 중...</div>
             </div>
-            <div class="stock-list" id="stockList">
-                </div>
+        </header>
+
+        <div class="ai-banner">
+            <div class="ai-icon"><i class="fa-solid fa-sparkles"></i></div>
+            <div class="ai-text" id="ai-insight">AI가 현재 위치(부산) 기상과 일정을 동기화하여 분석 중입니다...</div>
         </div>
 
-        <div class="panel">
-            <div class="panel-header">
-                <span><i class="fa-solid fa-chart-candlestick"></i> Market Terminal</span>
-                <div style="display:flex; gap: 10px; font-size:0.75rem;">
-                    <span style="color:var(--text-main); cursor:pointer;">1D</span>
-                    <span style="color:var(--text-muted); cursor:pointer;">1W</span>
-                    <span style="color:var(--text-muted); cursor:pointer;">1M</span>
+        <div class="dashboard-grid">
+            
+            <div class="panel">
+                <div class="panel-header">
+                    <span><i class="fa-solid fa-location-dot"></i> Local Environment</span>
+                </div>
+                <div class="weather-current">
+                    <div class="w-icon" id="w-icon-now">⏳</div>
+                    <div class="w-temp" id="w-temp-now">--°</div>
+                    <div class="w-desc" id="w-desc-main">기상 정보 로딩 중</div>
+                    <div class="w-location" id="w-location"><i class="fa-solid fa-crosshairs"></i> 위치 확인 중</div>
+                </div>
+                <div class="weather-hourly" id="hourly-container">
+                    </div>
+                <div class="kpi-row" style="border-top: 1px solid var(--border-color);">
+                    <div class="kpi-label">ISDRAM INDEX</div>
+                    <div class="kpi-val"><i class="fa-solid fa-microchip" style="color:var(--text-muted);"></i> 1,425.80 <span class="up" style="font-size:0.8rem;">(+2.45%)</span></div>
                 </div>
             </div>
-            <div class="chart-container">
-                <div class="tradingview-widget-container" style="height:100%; width:100%;">
-                    <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px); width:100%;"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-                    {
-                        "autosize": true,
-                        "symbol": "KRX:KOSPI",
-                        "interval": "5",
-                        "timezone": "Asia/Seoul",
-                        "theme": "dark",
-                        "style": "1",
-                        "locale": "kr",
-                        "enable_publishing": false,
-                        "backgroundColor": "#000000",
-                        "gridColor": "#1f1f1f",
-                        "hide_top_toolbar": true,
-                        "hide_legend": false,
-                        "save_image": false,
-                        "container_id": "tradingview_chart"
-                    }
-                    </script>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span><i class="fa-solid fa-chart-pie"></i> Market Terminal</span>
+                </div>
+                <div class="chart-container">
+                    <div class="tradingview-widget-container" style="height:100%; width:100%;">
+                        <div class="tradingview-widget-container__widget" style="height:100%; width:100%;"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+                        {
+                            "colorTheme": "dark",
+                            "dateRange": "1D",
+                            "showChart": true,
+                            "locale": "kr",
+                            "width": "100%",
+                            "height": "100%",
+                            "isTransparent": true,
+                            "showSymbolLogo": true,
+                            "showFloatingTooltip": true,
+                            "tabs": [
+                            {
+                                "title": "주요 지수",
+                                "symbols": [
+                                    { "s": "KRX:102110", "d": "코스피 (TIGER 200)" },
+                                    { "s": "NASDAQ:QQQ", "d": "나스닥 100" },
+                                    { "s": "AMEX:DIA", "d": "다우존스" }
+                                ]
+                            },
+                            {
+                                "title": "환율",
+                                "symbols": [
+                                    { "s": "FX_IDC:USDKRW", "d": "원/달러" },
+                                    { "s": "FX_IDC:JPYKRW", "d": "원/엔" }
+                                ]
+                            }
+                            ]
+                        }
+                        </script>
+                    </div>
                 </div>
             </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <span><i class="fa-solid fa-list-check"></i> Today's Action</span>
+                </div>
+                <div class="todo-list">
+                    <div class="todo-item">
+                        <div class="todo-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="todo-content">
+                            <div class="todo-title">주간 업무 보고 회의 참석</div>
+                            <div class="todo-time">오전 10:00</div>
+                        </div>
+                    </div>
+                    <div class="todo-item">
+                        <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
+                        <div class="todo-content">
+                            <div class="todo-title" style="color:var(--text-muted);">신규 프로젝트 킥오프 미팅</div>
+                            <div class="todo-time">오후 02:00</div>
+                        </div>
+                    </div>
+                    <div class="todo-item">
+                        <div class="todo-icon" style="color:var(--border-color);"><i class="fa-regular fa-circle"></i></div>
+                        <div class="todo-content">
+                            <div class="todo-title" style="color:var(--text-muted);">헬스장 (하체 운동)</div>
+                            <div class="todo-time">오후 06:30</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-header" style="border-top: none;">
+                    <span><i class="fa-regular fa-newspaper"></i> Live Feed</span>
+                </div>
+                <div class="news-list" id="news-container">
+                    <div class="news-item"><div class="news-title">뉴스를 불러오는 중입니다...</div></div>
+                </div>
+            </div>
+
         </div>
-
-        <div class="panel">
-            <div class="panel-header">
-                <span><i class="fa-regular fa-calendar-clock"></i> Market Calendar</span>
-            </div>
-            <div class="calendar-list">
-                <div class="cal-item">
-                    <div class="cal-info">
-                        <div class="cal-title"><i class="fa-solid fa-fire impact-high"></i> 미국 5월 CPI 발표</div>
-                        <div class="cal-time">오늘 밤 21:30 (KST)</div>
-                    </div>
-                    <div class="countdown" id="cd-cpi">--:--:--</div>
-                </div>
-                <div class="cal-item">
-                    <div class="cal-info">
-                        <div class="cal-title"><i class="fa-solid fa-fire impact-high"></i> FOMC 성명서 및 금리 결정</div>
-                        <div class="cal-time">내일 새벽 03:00 (KST)</div>
-                    </div>
-                    <div class="countdown" style="color: var(--text-muted);">16:45:12</div>
-                </div>
-            </div>
-
-            <div class="panel-header" style="border-top: 1px solid var(--border-color);">
-                <span><i class="fa-solid fa-brain"></i> AI Sentiment News</span>
-            </div>
-            <div class="news-list">
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="nlp-badge nlp-pos">Strong Buy (호재)</span>
-                        <span style="font-size: 0.7rem; color:var(--text-muted);">14:22</span>
-                    </div>
-                    <div class="news-title">엔비디아 CEO, 차세대 칩 조기 양산 시사... 국내 HBM 밸류체인 수혜 기대감 폭발</div>
-                    <div class="news-tags">#AI반도체 #SK하이닉스 #한미반도체</div>
-                </div>
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="nlp-badge nlp-neg">Risk (악재)</span>
-                        <span style="font-size: 0.7rem; color:var(--text-muted);">13:45</span>
-                    </div>
-                    <div class="news-title">美 국채 10년물 금리 급등세... 외인 코스닥 현물 순매도 전환하며 기술주 투심 악화</div>
-                    <div class="news-tags">#거시경제 #수급이탈</div>
-                </div>
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="nlp-badge nlp-neu">Neutral (중립)</span>
-                        <span style="font-size: 0.7rem; color:var(--text-muted);">12:10</span>
-                    </div>
-                    <div class="news-title">삼성전자 노조 파업 유보 선언, 사측과 교섭 재개 일정 조율 중</div>
-                    <div class="news-tags">#삼성전자 #반도체</div>
-                </div>
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="nlp-badge nlp-pos">Positive (호재)</span>
-                        <span style="font-size: 0.7rem; color:var(--text-muted);">10:05</span>
-                    </div>
-                    <div class="news-title">LK-99 후속 논문 국제 학술지 등재 임박 소식... 관련 테마주 장중 급등세</div>
-                    <div class="news-tags">#초전도체 #신성델타테크</div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <script>
-        // 1. Theme Tracker Data & Logic
-        const stockData = [
-            { id: 's1', name: 'SK하이닉스', theme: 'AI 반도체', price: 234500, rate: 4.25 },
-            { id: 's2', name: '한미반도체', theme: 'AI 반도체', price: 168200, rate: 8.15 },
-            { id: 's3', name: '이수페타시스', theme: 'AI 반도체', price: 48900, rate: 3.40 },
-            { id: 's4', name: '신성델타테크', theme: '초전도체', price: 68500, rate: 12.30 },
-            { id: 's5', name: '씨씨에스', theme: '초전도체', price: 3420, rate: -2.10 },
-            { id: 's6', name: '서남', theme: '초전도체', price: 5120, rate: 4.50 },
-            { id: 's7', name: '루닛', theme: '의료 AI', price: 54300, rate: -1.20 },
-            { id: 's8', name: '뷰노', theme: '의료 AI', price: 31200, rate: 2.10 }
-        ];
-
-        function renderStocks(filter = "") {
-            const listEl = document.getElementById('stockList');
-            const filtered = stockData.filter(s => s.name.includes(filter) || s.theme.includes(filter));
-            
-            listEl.innerHTML = filtered.map(s => {
-                const isUp = s.rate >= 0;
-                const rateSign = isUp ? '+' : '';
-                const colorClass = isUp ? 'bg-up' : 'bg-down';
-                const pClass = isUp ? 'up' : 'down';
-                
-                return `
-                <div class="stock-item" id="item-${s.id}">
-                    <div class="stock-info">
-                        <div class="stock-name">${s.name}</div>
-                        <div class="stock-theme">${s.theme}</div>
-                    </div>
-                    <div class="stock-price-data">
-                        <div class="stock-price ${pClass}" id="price-${s.id}">${s.price.toLocaleString()}</div>
-                        <div class="stock-rate ${colorClass}" id="rate-${s.id}">${rateSign}${s.rate.toFixed(2)}%</div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        document.getElementById('themeSearch').addEventListener('input', (e) => {
-            renderStocks(e.target.value);
-        });
-        
-        renderStocks(); // 초기 렌더링
-
-        // 2. WebSocket Simulation (Tick Data Engine)
-        // 0.5초마다 랜덤한 종목의 호가를 움직이고 플래시 애니메이션 효과 부여
-        setInterval(() => {
-            // 주식 호가 갱신
-            const randomStock = stockData[Math.floor(Math.random() * stockData.length)];
-            const tickDirection = Math.random() > 0.5 ? 1 : -1;
-            const tickAmount = randomStock.price * 0.001 * tickDirection; // 0.1% 변동
-            
-            randomStock.price += tickAmount;
-            randomStock.rate += (tickDirection * 0.05);
-            
-            const priceEl = document.getElementById(`price-${randomStock.id}`);
-            const rateEl = document.getElementById(`rate-${randomStock.id}`);
-            
-            if(priceEl && rateEl) {
-                priceEl.innerText = Math.round(randomStock.price).toLocaleString();
-                const isUp = randomStock.rate >= 0;
-                rateEl.innerText = `${isUp ? '+' : ''}${randomStock.rate.toFixed(2)}%`;
-                
-                // K-Color 플래시 애니메이션 적용
-                priceEl.classList.remove('tick-up', 'tick-down');
-                void priceEl.offsetWidth; // 리플로우 강제 트리거(애니메이션 재시작)
-                priceEl.classList.add(tickDirection > 0 ? 'tick-up' : 'tick-down');
-            }
-
-            // 매크로 티커 (나스닥 갱신 시뮬레이션)
-            if(Math.random() > 0.7) {
-                const nqEl = document.getElementById('nq-price');
-                nqEl.classList.remove('tick-up', 'tick-down');
-                void nqEl.offsetWidth;
-                nqEl.classList.add(Math.random() > 0.5 ? 'tick-up' : 'tick-down');
-            }
-            
-        }, 600); // 600ms 간격 초고속 틱 시뮬레이션
-
-        // 3. Countdown Timer (Economic Calendar)
-        function updateCountdown() {
+        // 1. Time Update
+        function updateTime() {
             const now = new Date();
-            // 가상의 오늘 밤 21:30분 설정
-            const target = new Date();
-            target.setHours(21, 30, 0, 0);
-            
-            let diff = target - now;
-            if (diff < 0) {
-                document.getElementById('cd-cpi').innerText = "발표 완료";
-                return;
-            }
-            
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-            
-            document.getElementById('cd-cpi').innerText = 
-                `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            document.getElementById('date').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
+            let hours = now.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            document.getElementById('time').innerText = `${String(hours).padStart(2,'0')}:${String(now.getMinutes()).padStart(2, '0')} ${ampm}`;
         }
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+        setInterval(updateTime, 1000); updateTime();
+
+        // 날씨 아이콘 헬퍼
+        function getWeatherDetails(code) {
+            if (code >= 0 && code <= 1) return { icon: '☀️', desc: '맑음' };
+            if (code >= 2 && code <= 3) return { icon: '⛅', desc: '구름 조금' };
+            if (code >= 45 && code <= 48) return { icon: '🌫️', desc: '안개' };
+            if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { icon: '🌧️', desc: '비' };
+            if (code >= 71 && code <= 86) return { icon: '❄️', desc: '눈' };
+            if (code >= 95) return { icon: '⛈️', desc: '천둥번개' };
+            return { icon: '☁️', desc: '흐림' };
+        }
+
+        // 2. Weather & AI Context
+        async function fetchWeather(lat, lon, locName) {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`;
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                const currentTemp = Math.round(data.current.temperature_2m);
+                const maxTemp = Math.round(data.daily.temperature_2m_max[0]);
+                const minTemp = Math.round(data.daily.temperature_2m_min[0]);
+                const currentInfo = getWeatherDetails(data.current.weather_code);
+
+                // Update UI
+                document.getElementById('w-location').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${locName}`;
+                document.getElementById('w-icon-now').innerText = currentInfo.icon;
+                document.getElementById('w-temp-now').innerText = `${currentTemp}°`;
+                document.getElementById('w-desc-main').innerText = `${currentInfo.desc} · 최고 ${maxTemp}° / 최저 ${minTemp}°`;
+
+                // Hourly
+                const currentHourStr = data.current.time.substring(0, 13);
+                const hourlyTimes = data.hourly.time;
+                let startIndex = hourlyTimes.findIndex(t => t.startsWith(currentHourStr));
+                if(startIndex === -1) startIndex = 0;
+
+                let hourlyHtml = '';
+                for(let i = startIndex + 1; i <= startIndex + 6; i++) {
+                    if(!hourlyTimes[i]) break;
+                    const hObj = new Date(hourlyTimes[i]);
+                    let h = hObj.getHours();
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    h = h % 12 || 12;
+                    const hTemp = Math.round(data.hourly.temperature_2m[i]);
+                    const hInfo = getWeatherDetails(data.hourly.weather_code[i]);
+
+                    hourlyHtml += `
+                    <div class="h-item">
+                        <div class="h-time">${h} ${ampm}</div>
+                        <div class="h-icon">${hInfo.icon}</div>
+                        <div class="h-temp">${hTemp}°</div>
+                    </div>`;
+                }
+                document.getElementById('hourly-container').innerHTML = hourlyHtml;
+
+                // AI Insight Logic
+                const aiEl = document.getElementById('ai-insight');
+                const isRaining = data.current.weather_code >= 51 && data.current.weather_code <= 95;
+                if(isRaining) {
+                    aiEl.innerHTML = `현재 <span style="color:var(--accent-blue);">비가 내리고 있습니다.</span> 외근 시 교통 체증이 예상되므로, 오후 2시 '신규 프로젝트 킥오프'를 화상 미팅으로 전환할 것을 권장합니다.`;
+                } else {
+                    aiEl.innerHTML = `오늘 기상은 <span style="color:var(--accent-purple);">활동하기 좋은 맑은 상태</span>입니다. 오후 6시 30분 '하체 운동' 일정을 소화하기 완벽한 날씨입니다.`;
+                }
+
+            } catch (error) {
+                document.getElementById('w-desc-main').innerText = "날씨 정보 오류";
+            }
+        }
+
+        async function getCityName(lat, lon) {
+            try {
+                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
+                const data = await res.json();
+                return data.locality || data.city || "현재 위치";
+            } catch(e) { return "현재 위치"; }
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (p) => { const loc = await getCityName(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude, loc); },
+                () => fetchWeather(35.1796, 129.0756, "부산 (기본값)")
+            );
+        } else { fetchWeather(35.1796, 129.0756, "부산 (기본값)"); }
+
+        // 3. General Economic News
+        async function fetchNews() {
+            try {
+                const rssUrl = 'https://www.mk.co.kr/rss/30000001/';
+                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+                const res = await fetch(apiUrl);
+                const data = await res.json();
+                
+                if(data.status === 'ok') {
+                    let html = '';
+                    data.items.slice(0, 5).forEach(item => {
+                        const d = new Date(item.pubDate);
+                        const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+                        html += `
+                        <a href="${item.link}" target="_blank" class="news-item">
+                            <div class="news-icon"><i class="fa-regular fa-newspaper"></i></div>
+                            <div style="flex:1;">
+                                <div class="news-title">${item.title}</div>
+                                <div class="news-meta">매일경제 · ${timeStr}</div>
+                            </div>
+                        </a>`;
+                    });
+                    document.getElementById('news-container').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('news-container').innerHTML = '<div class="news-item">뉴스 로드 실패</div>';
+            }
+        }
+        fetchNews();
     </script>
 </body>
 </html>
