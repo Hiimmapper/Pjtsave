@@ -3,138 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Command Center | Series A Prototype</title>
+    <title>Executive OS | Enterprise Platform</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-color: #f1f5f9;
-            --surface-color: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-            --accent-color: #2563eb;
-            --ai-color: #8b5cf6;
-            --up-color: #ef4444;
+            --bg-dark: #0f172a;
+            --surface-dark: #1e293b;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border-dark: #334155;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: var(--text-primary); padding: 2rem; }
-        .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-dark); color: var(--text-light); padding: 2rem; overflow-x: hidden; }
+        
+        .container { max-width: 1440px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
 
-        /* --- Skeleton UI Animation --- */
-        @keyframes pulse {
-            0% { background-color: #cbd5e1; }
-            50% { background-color: #e2e8f0; }
-            100% { background-color: #cbd5e1; }
-        }
-        .skeleton { animation: pulse 1.5s infinite ease-in-out; border-radius: 6px; color: transparent !important; pointer-events: none; }
-        .skeleton * { visibility: hidden; }
-
-        /* Header */
-        header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1rem; border-bottom: 2px solid var(--border-color); }
-        .header-left h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; }
-        .header-left p { color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.2rem; font-weight: 500; }
+        /* Header (정보 밀도 상승) */
+        header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 1rem; border-bottom: 1px solid var(--border-dark); }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .workspace-avatar { width: 40px; height: 40px; background: var(--accent-blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; }
+        .header-left h1 { font-size: 1.5rem; font-weight: 800; }
+        .status-badge { background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16,185,129,0.2); display: flex; align-items: center; gap: 6px; }
+        .status-dot { width: 6px; height: 6px; background: var(--success); border-radius: 50%; box-shadow: 0 0 8px var(--success); }
+        
         .header-right { text-align: right; }
-        .header-right .time { font-size: 2.2rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
-        .header-right .date { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem; font-weight: 600; }
+        .time { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+        .date { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem; font-weight: 500; }
 
-        /* AI Insight Banner (Killer Feature) */
-        .ai-banner {
-            background: linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(37, 99, 235, 0.05));
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-left: 4px solid var(--ai-color);
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-        }
-        .ai-icon { color: var(--ai-color); font-size: 1.5rem; animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-3px); } 100% { transform: translateY(0px); } }
-        .ai-text { font-weight: 600; font-size: 0.95rem; line-height: 1.4; }
+        /* AI Pre-meeting Briefing (Dynamic Context) */
+        .ai-briefing { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(30, 41, 59, 1)); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 1.25rem 1.5rem; display: flex; gap: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+        .ai-briefing::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent-purple); }
+        .briefing-icon { font-size: 2rem; color: var(--accent-purple); }
+        .briefing-content { flex: 1; }
+        .briefing-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .briefing-title .badge-urgent { background: var(--danger); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
+        .briefing-text { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.8rem; }
+        .briefing-actions button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
+        .briefing-actions button:hover { background: var(--accent-purple); border-color: var(--accent-purple); }
 
-        /* KPI Grid */
-        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-        .kpi-card { background: var(--surface-color); padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s; }
-        .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent-color); }
-        .kpi-label { color: var(--text-secondary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display:flex; justify-content: space-between;}
-        .kpi-value { font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 0.75rem; min-height: 2.2rem; }
-        .kpi-sub { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); min-height: 1rem;}
+        /* Dense Grid System */
+        .dashboard-grid { display: grid; grid-template-columns: 280px 1fr 320px; gap: 1.5rem; align-items: start; }
+        @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        
+        .panel { background: var(--surface-dark); border: 1px solid var(--border-dark); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
+        .panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-dark); font-size: 0.9rem; font-weight: 700; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
+        .drag-handle { cursor: grab; color: #475569; }
 
-        /* Main Grid */
-        .main-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
-        .section-title i { color: var(--accent-color); }
-        .widget-box { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; height: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden; }
+        /* Interactive KPI Widget (Progressive Disclosure) */
+        .kpi-widget { padding: 1.5rem 1.25rem; border-bottom: 1px solid var(--border-dark); transition: background 0.3s; position: relative; }
+        .kpi-widget:hover { background: rgba(255,255,255,0.02); }
+        .kpi-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; letter-spacing: 0.05em; display: flex; justify-content: space-between; }
+        .kpi-value { font-size: 1.8rem; font-weight: 800; display: flex; align-items: baseline; gap: 0.5rem; }
+        .kpi-change { font-size: 0.9rem; font-weight: 600; }
+        .kpi-change.up { color: var(--success); }
+        .kpi-change.down { color: var(--danger); }
+        
+        /* 숨겨진 차트 (마우스 호버 시 노출) */
+        .kpi-details { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; margin-top: 0; }
+        .kpi-widget:hover .kpi-details { max-height: 100px; opacity: 1; margin-top: 1rem; }
+        .mini-chart-mock { width: 100%; height: 40px; background: linear-gradient(to right, transparent, rgba(16,185,129,0.1)); border-bottom: 2px solid var(--success); position: relative; }
+        
+        /* Integrations List */
+        .list-item { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-dark); display: flex; gap: 1rem; align-items: flex-start; transition: background 0.2s; cursor: pointer; }
+        .list-item:hover { background: rgba(255,255,255,0.03); }
+        .item-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .icon-slack { background: rgba(224, 30, 90, 0.1); color: #e01e5a; }
+        .icon-jira { background: rgba(0, 82, 204, 0.1); color: #2684ff; }
+        .item-text { flex: 1; }
+        .item-title { font-size: 0.9rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.2rem; }
+        .item-sub { font-size: 0.75rem; color: var(--text-muted); }
 
-        /* Lists */
-        .list-group { display: flex; flex-direction: column; }
-        .list-item { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem; align-items: flex-start; text-decoration: none; color: inherit; transition: background 0.15s; }
-        .list-item:last-child { border-bottom: none; }
-        .list-item:hover { background: var(--bg-color); }
-        .item-content { flex: 1; }
-        .item-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; min-height: 1.4rem;}
-        .item-meta { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; min-height: 1rem;}
-
-        /* Prop Data Badge */
-        .badge-prop { background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; }
+        /* Slack Toast Notification */
+        .toast-container { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 1000; }
+        .toast { background: var(--surface-dark); border: 1px solid var(--border-dark); border-left: 4px solid #e01e5a; border-radius: 8px; padding: 1rem; width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; gap: 1rem; }
+        .toast.show { transform: translateX(0); }
+        .toast-img { width: 36px; height: 36px; border-radius: 50%; background: #475569; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; }
+        .toast-content { flex: 1; }
+        .toast-header { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.2rem; display:flex; justify-content:space-between;}
+        .toast-body { font-size: 0.9rem; line-height: 1.4; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <div class="header-left">
-                <h1>Command Center <span style="font-size: 1rem; color: var(--accent-color); background: #eff6ff; padding: 4px 8px; border-radius: 8px; margin-left: 8px;">Pro</span></h1>
-                <p>데이터 기반 의사결정을 위한 C-Level 인텔리전스</p>
+                <div class="workspace-avatar">E</div>
+                <div>
+                    <h1>Executive OS</h1>
+                    <div class="status-badge"><div class="status-dot"></div> System Sync: Real-time (WebSocket)</div>
+                </div>
             </div>
             <div class="header-right">
-                <div class="time" id="time">--:--</div>
-                <div class="date" id="date">로딩 중...</div>
+                <div class="time" id="time">09:46</div>
+                <div class="date" id="date">2026년 6월 23일 화요일 · 부산</div>
             </div>
         </header>
 
-        <div class="ai-banner">
-            <div class="ai-icon"><i class="fa-solid fa-sparkles"></i></div>
-            <div class="ai-text" id="ai-insight">
-                <span class="skeleton" style="display:inline-block; width: 600px; height: 1.2rem;">AI가 현재 상황을 분석하여 인사이트를 도출하고 있습니다...</span>
+        <div class="ai-briefing">
+            <div class="briefing-icon"><i class="fa-solid fa-bolt"></i></div>
+            <div class="briefing-content">
+                <div class="briefing-title">
+                    주간 업무 보고 <span class="badge-urgent">14분 전</span>
+                </div>
+                <div class="briefing-text">
+                    Google Calendar와 Jira 데이터를 동기화했습니다. 지난주 대비 고객 이탈률(Churn Rate)이 1.2% 상승했으며, 백엔드 마이그레이션 이슈가 병목으로 감지되었습니다. 회의 전 핵심 지표 요약을 확인하시겠습니까?
+                </div>
+                <div class="briefing-actions">
+                    <button><i class="fa-solid fa-file-lines"></i> 생성된 AI 브리핑 문서 열기</button>
+                </div>
             </div>
         </div>
 
-        <div class="kpi-grid">
-            <div class="kpi-card">
-                <div class="kpi-label"><span id="w-location"><span class="skeleton" style="width:100px; height:12px;"></span></span> <span>WEATHER</span></div>
-                <div class="kpi-value" id="w-value"><span class="skeleton" style="width:80px; height:32px;"></span></div>
-                <div class="kpi-sub" id="w-desc"><span class="skeleton" style="width:150px; height:14px;"></span></div>
-            </div>
+        <div class="dashboard-grid">
             
-            <div class="kpi-card" style="border-left: 4px solid var(--text-primary);">
-                <div class="kpi-label"><span>ISDRAM INDEX <span class="badge-prop">자체 데이터</span></span> <span>TECH INDICATOR</span></div>
-                <div class="kpi-value">
-                    <i class="fa-solid fa-microchip" style="color:var(--text-secondary);"></i> 1,425.80
+            <div class="panel">
+                <div class="panel-header">
+                    <span><i class="fa-solid fa-chart-line"></i> PROPRIETARY INDICATORS</span>
+                    <i class="fa-solid fa-grip-vertical drag-handle"></i>
                 </div>
-                <div class="kpi-sub"><span style="color:var(--up-color); font-weight:700;">+2.45%</span> · 글로벌 서버 증설 수요 반영됨</div>
+                
+                <div class="kpi-widget">
+                    <div class="kpi-label"><span>ISDRAM INDEX</span> <i class="fa-solid fa-microchip"></i></div>
+                    <div class="kpi-value">
+                        1,425.80 <span class="kpi-change up">+2.45%</span>
+                    </div>
+                    <div class="kpi-details">
+                        <div style="font-size: 0.75rem; color:var(--text-muted); margin-bottom: 4px;">24H Trend View (서버 증설 수요 반영)</div>
+                        <div class="mini-chart-mock">
+                            <svg width="100%" height="100%" preserveAspectRatio="none"><polyline points="0,40 50,30 100,35 150,15 200,20 250,0" fill="none" stroke="#10b981" stroke-width="2"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-widget">
+                    <div class="kpi-label"><span>Q3 REVENUE PROJECTION</span> <i class="fa-solid fa-wallet"></i></div>
+                    <div class="kpi-value">
+                        $4.2M <span class="kpi-change down">-0.8%</span>
+                    </div>
+                    <div class="kpi-details">
+                        <div style="font-size: 0.75rem; color:var(--text-muted);">Salesforce 데이터 실시간 동기화 완료. 아시아권 매출 지연 감지.</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="kpi-card">
-                <div class="kpi-label"><span>NEXT ACTION</span> <span>SCHEDULE</span></div>
-                <div class="kpi-value">
-                    <i class="fa-regular fa-calendar-check" style="color:var(--accent-color);"></i> 기획 회의
+            <div class="panel" style="height: 550px;">
+                <div class="panel-header">
+                    <span><i class="fa-solid fa-globe"></i> GLOBAL MARKETS (Live)</span>
+                    <i class="fa-solid fa-grip-vertical drag-handle"></i>
                 </div>
-                <div class="kpi-sub">오전 10:00 · 주간 업무 보고</div>
-            </div>
-        </div>
-
-        <div class="main-grid">
-            <div class="widget-col">
-                <h2 class="section-title"><i class="fa-solid fa-chart-pie"></i> 마켓 터미널 (Live)</h2>
-                <div class="widget-box" style="height: 500px; padding: 10px;">
+                <div style="padding: 10px; height: 100%;">
                     <div class="tradingview-widget-container">
                         <div class="tradingview-widget-container__widget"></div>
                         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
                         {
-                            "colorTheme": "light",
+                            "colorTheme": "dark",
                             "dateRange": "1D",
                             "showChart": true,
                             "locale": "kr",
@@ -142,21 +170,12 @@
                             "height": "100%",
                             "isTransparent": true,
                             "showSymbolLogo": true,
-                            "showFloatingTooltip": true,
                             "tabs": [
                             {
                                 "title": "핵심 지수",
                                 "symbols": [
-                                    { "s": "KRX:102110", "d": "코스피 (TIGER 200)" },
-                                    { "s": "NASDAQ:QQQ", "d": "나스닥 100" },
-                                    { "s": "AMEX:SPY", "d": "S&P 500" }
-                                ]
-                            },
-                            {
-                                "title": "주요 환율",
-                                "symbols": [
-                                    { "s": "FX_IDC:USDKRW", "d": "원/달러" },
-                                    { "s": "FX_IDC:JPYKRW", "d": "원/엔" }
+                                    { "s": "KRX:102110", "d": "코스피" },
+                                    { "s": "NASDAQ:QQQ", "d": "나스닥 100" }
                                 ]
                             }
                             ]
@@ -166,103 +185,82 @@
                 </div>
             </div>
 
-            <div class="action-col">
-                <h2 class="section-title"><i class="fa-solid fa-bolt"></i> 실시간 경제 속보</h2>
-                <div class="widget-box list-group" id="news-container">
-                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:90%"></div><div class="item-meta skeleton" style="width:40%"></div></div></div>
-                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:85%"></div><div class="item-meta skeleton" style="width:50%"></div></div></div>
-                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:95%"></div><div class="item-meta skeleton" style="width:30%"></div></div></div>
-                    <div class="list-item"><div class="item-content"><div class="item-title skeleton" style="width:80%"></div><div class="item-meta skeleton" style="width:45%"></div></div></div>
+            <div class="panel">
+                <div class="panel-header">
+                    <span><i class="fa-solid fa-link"></i> INTEGRATIONS FEED</span>
+                    <i class="fa-solid fa-grip-vertical drag-handle"></i>
+                </div>
+                
+                <div class="list-item">
+                    <div class="item-icon icon-jira"><i class="fa-brands fa-jira"></i></div>
+                    <div class="item-text">
+                        <div class="item-title">[CRITICAL] 결제 모듈 타임아웃 에러</div>
+                        <div class="item-sub">Dev Team · 5분 전 생성됨</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="item-icon icon-slack"><i class="fa-brands fa-slack"></i></div>
+                    <div class="item-text">
+                        <div class="item-title">디자인 챕터 주간 동기화 완료</div>
+                        <div class="item-sub">#design-team · 12분 전</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="item-icon" style="background: rgba(16,185,129,0.1); color: var(--success);"><i class="fa-solid fa-file-invoice"></i></div>
+                    <div class="item-text">
+                        <div class="item-title">Enterprise 플랜 연간 갱신 완료</div>
+                        <div class="item-sub">Stripe · 1시간 전 결제됨</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="toast-container" id="toast-container"></div>
+
     <script>
-        // 1. Time Update
+        // 시계 시뮬레이터 (고정된 9시 46분이 아니라 실제 시간을 흐르게 만듦)
         function updateTime() {
             const now = new Date();
-            const days = ['일', '월', '화', '수', '목', '금', '토'];
-            document.getElementById('date').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 ${days[now.getDay()]}요일`;
             let hours = now.getHours();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
-            document.getElementById('time').innerText = `${hours}:${String(now.getMinutes()).padStart(2, '0')} ${ampm}`;
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').innerText = `${String(hours).padStart(2,'0')}:${minutes}`;
         }
         setInterval(updateTime, 1000); updateTime();
 
-        // 2. Weather & Contextual AI (Simulating API Delay to show Skeleton)
-        async function fetchWeather(lat, lon, locName) {
-            try {
-                // 인위적인 지연시간 추가 (스켈레톤 UI를 보여주기 위함, 실제 서비스에선 제거)
-                await new Promise(r => setTimeout(r, 800));
+        // 웹소켓(WebSocket) 수신 시뮬레이션: Slack 알림 발생 로직
+        setTimeout(() => {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <div class="toast-img">CTO</div>
+                <div class="toast-content">
+                    <div class="toast-header">
+                        <span><i class="fa-brands fa-slack" style="color:#e01e5a"></i> Slack 메시지</span>
+                        <span style="font-weight:400;">방금</span>
+                    </div>
+                    <div class="toast-body">
+                        <strong>@here</strong> AWS 서버 부하 문제 롤백하여 해결 완료했습니다. 추가 모니터링 진행하겠습니다.
+                    </div>
+                </div>
+            `;
+            toastContainer.appendChild(toast);
+            
+            // 애니메이션 실행 (Repaint 후)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    toast.classList.add('show');
+                });
+            });
 
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                const temp = Math.round(data.current.temperature_2m);
-                const maxTemp = Math.round(data.daily.temperature_2m_max[0]);
-                const code = data.current.weather_code;
-                
-                let icon = '☀️'; let isRaining = false;
-                if (code >= 2 && code <= 48) { icon = '☁️'; }
-                else if (code >= 51 && code <= 95) { icon = '🌧️'; isRaining = true; }
-
-                // 스켈레톤 제거 및 데이터 삽입
-                document.getElementById('w-location').innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> ${locName}`;
-                document.getElementById('w-value').innerHTML = `${icon} ${temp}°C`;
-                document.getElementById('w-desc').innerHTML = `최고 ${maxTemp}° · 최저 ${Math.round(data.daily.temperature_2m_min[0])}°`;
-
-                // AI Insight Logic (날씨 기반 동적 메시지)
-                const aiEl = document.getElementById('ai-insight');
-                if(isRaining) {
-                    aiEl.innerHTML = `현재 <span style="color:var(--accent-color); font-weight:800;">비가 내리고 있습니다.</span> 출장 또는 외근 시 교통 체증이 예상되므로, 오후 2시 '신규 프로젝트 킥오프' 미팅을 화상 회의로 전환하는 것을 권장합니다.`;
-                } else {
-                    aiEl.innerHTML = `현재 위치 기상은 <span style="color:var(--accent-color); font-weight:800;">활동하기 좋은 맑은 상태</span>입니다. 오후 6시 30분에 예정된 '하체 운동' 일정을 소화하기 완벽한 날씨입니다.`;
-                }
-
-            } catch (e) {
-                document.getElementById('w-location').innerHTML = "위치 오류";
-                document.getElementById('ai-insight').innerHTML = "AI 분석 서버에 연결할 수 없습니다.";
-            }
-        }
-
-        async function getCityName(lat, lon) {
-            try {
-                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ko`);
-                const data = await res.json(); return data.locality || data.city || "현재 위치";
-            } catch(e) { return "현재 위치"; }
-        }
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                async (p) => { const loc = await getCityName(p.coords.latitude, p.coords.longitude); fetchWeather(p.coords.latitude, p.coords.longitude, loc); },
-                () => fetchWeather(35.1796, 129.0756, "부산 (기본값)")
-            );
-        } else { fetchWeather(35.1796, 129.0756, "부산 (기본값)"); }
-
-        // 3. News Feed (Simulating API Delay)
-        async function fetchNews() {
-            try {
-                await new Promise(r => setTimeout(r, 1200)); // 스켈레톤 UI 노출용 지연
-                const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.mk.co.kr/rss/30000001/')}`;
-                const res = await fetch(apiUrl); const data = await res.json();
-                
-                if(data.status === 'ok') {
-                    let html = '';
-                    data.items.slice(0, 4).forEach(item => {
-                        const d = new Date(item.pubDate);
-                        html += `<a href="${item.link}" target="_blank" class="list-item">
-                                    <div class="item-content"><div class="item-title">${item.title}</div>
-                                    <div class="item-meta">매일경제 · ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}</div></div>
-                                 </a>`;
-                    });
-                    document.getElementById('news-container').innerHTML = html;
-                }
-            } catch(e) {}
-        }
-        fetchNews();
+            // 5초 뒤 알림 숨기기
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 6000);
+            
+        }, 3000); // 페이지 진입 3초 뒤에 알림 발생
     </script>
 </body>
 </html>
