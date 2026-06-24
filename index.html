@@ -16,6 +16,8 @@
             --color-down-us: #ef4444;
             --color-error: #f59e0b;
             --border-color: #2a2a4a;
+            --warn-bg: rgba(255, 200, 0, 0.15);
+            --warn-high: #ef4444;
         }
 
         body {
@@ -28,6 +30,7 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .dashboard-container {
@@ -41,9 +44,7 @@
         /* --- Section 1: Time & Weather --- */
         .top-section {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 20px;
         }
 
@@ -66,21 +67,54 @@
             font-weight: 500;
         }
 
-        .weather-container {
+        .weather-scroll-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .weather-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        .weather-scroll-container::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .weather-card {
             background-color: var(--bg-card);
             border-radius: 12px;
-            padding: 20px 30px;
+            padding: 20px 25px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             gap: 10px;
-            min-width: 250px;
+            min-width: 280px;
+            flex-shrink: 0;
+            position: relative;
         }
 
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .delete-btn:hover { color: var(--color-error); }
+
         .weather-location {
-            font-size: 0.9rem;
+            font-size: 1rem;
             color: var(--text-sub);
             font-weight: 600;
+            padding-right: 20px;
         }
 
         .weather-main {
@@ -89,19 +123,9 @@
             gap: 15px;
         }
 
-        .weather-icon {
-            font-size: 2.5rem;
-        }
-
-        .weather-temp {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-
-        .weather-desc {
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
+        .weather-icon { font-size: 2.5rem; }
+        .weather-temp { font-size: 2.2rem; font-weight: 700; }
+        .weather-desc { font-size: 1.1rem; font-weight: 600; }
 
         .weather-sub {
             display: flex;
@@ -109,6 +133,89 @@
             font-size: 0.9rem;
             color: var(--text-sub);
         }
+
+        .weather-warning {
+            margin-top: 10px;
+            padding: 12px;
+            background-color: var(--warn-bg);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #facc15;
+            font-weight: 500;
+        }
+
+        .prob-high {
+            color: var(--warn-high);
+            font-weight: 800;
+        }
+
+        .add-location-card {
+            background-color: transparent;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            min-width: 250px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background-color 0.2s;
+        }
+
+        .add-location-card:hover {
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        .add-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .add-form {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .add-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-main);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+
+        .add-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-submit { background-color: var(--color-down-kr); color: white; }
+        .btn-cancel { background-color: var(--border-color); color: var(--text-main); }
 
         .separator {
             width: 100%;
@@ -174,12 +281,6 @@
             gap: 5px;
         }
 
-        .up-kr { color: var(--color-up-kr); }
-        .down-kr { color: var(--color-down-kr); }
-        .up-us { color: var(--color-up-us); }
-        .down-us { color: var(--color-down-us); }
-        .neutral { color: var(--text-main); }
-
         .error-text {
             color: var(--color-error);
             font-size: 0.9rem;
@@ -192,16 +293,6 @@
             font-size: 1rem;
         }
 
-        @media (max-width: 768px) {
-            .top-section {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .weather-container {
-                width: 100%;
-                box-sizing: border-box;
-            }
-        }
     </style>
 </head>
 <body>
@@ -212,9 +303,8 @@
                 <div id="clock" class="clock">--:--:--</div>
                 <div id="date" class="date">----년 --월 --일 (-)</div>
             </div>
-            <div class="weather-container" id="weather-box">
-                <div class="loading">위치 및 날씨 정보 확인 중...</div>
-            </div>
+            <div class="weather-scroll-container" id="weather-container">
+                </div>
         </div>
 
         <hr class="separator">
@@ -225,30 +315,12 @@
         </div>
 
         <div class="grid-container">
-            <div class="card" id="kospi-card">
-                <h2 class="card-title">코스피 (KOSPI)</h2>
-                <div class="loading">데이터 로딩 중...</div>
-            </div>
-            <div class="card" id="kosdaq-card">
-                <h2 class="card-title">코스닥 (KOSDAQ)</h2>
-                <div class="loading">데이터 로딩 중...</div>
-            </div>
-            <div class="card" id="nasdaq-card">
-                <h2 class="card-title">나스닥 (NASDAQ)</h2>
-                <div class="loading">데이터 로딩 중...</div>
-            </div>
-            <div class="card" id="sp500-card">
-                <h2 class="card-title">S&P 500</h2>
-                <div class="loading">데이터 로딩 중...</div>
-            </div>
-            <div class="card" id="usd-card">
-                <h2 class="card-title">달러/원 (USD/KRW)</h2>
-                <div class="loading">데이터 로딩 중...</div>
-            </div>
-            <div class="card" id="jpy-card">
-                <h2 class="card-title">100엔/원 (JPY 100/KRW)</h2>
-                <div class="loading">데이터 로딩 중...</div>
-            </div>
+            <div class="card" id="kospi-card"><h2 class="card-title">코스피 (KOSPI)</h2><div class="loading">데이터 로딩 중...</div></div>
+            <div class="card" id="kosdaq-card"><h2 class="card-title">코스닥 (KOSDAQ)</h2><div class="loading">데이터 로딩 중...</div></div>
+            <div class="card" id="nasdaq-card"><h2 class="card-title">나스닥 (NASDAQ)</h2><div class="loading">데이터 로딩 중...</div></div>
+            <div class="card" id="sp500-card"><h2 class="card-title">S&P 500</h2><div class="loading">데이터 로딩 중...</div></div>
+            <div class="card" id="usd-card"><h2 class="card-title">달러/원 (USD/KRW)</h2><div class="loading">데이터 로딩 중...</div></div>
+            <div class="card" id="jpy-card"><h2 class="card-title">100엔/원 (JPY 100/KRW)</h2><div class="loading">데이터 로딩 중...</div></div>
         </div>
     </div>
 
@@ -257,13 +329,10 @@
         function updateClock() {
             const now = new Date();
             const days = ['일', '월', '화', '수', '목', '금', '토'];
-            
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            
-            document.getElementById('clock').innerText = `${hours}:${minutes}:${seconds}`;
-            document.getElementById('date').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+            document.getElementById('clock').innerText = 
+                `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            document.getElementById('date').innerText = 
+                `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -280,48 +349,168 @@
             return { icon: '🌡️', text: '기타' };
         }
 
-        async function fetchWeather() {
+        function formatHour(isoString) {
+            const date = new Date(isoString);
+            let h = date.getHours();
+            const ampm = h >= 12 ? '오후' : '오전';
+            h = h % 12 || 12;
+            return `${ampm} ${h}시`;
+        }
+
+        let savedLocations = JSON.parse(localStorage.getItem('weatherLocations')) || [];
+
+        function renderWeatherCards() {
+            const container = document.getElementById('weather-container');
+            container.innerHTML = `
+                <div class="weather-card" id="gps-weather-card">
+                    <div class="loading">GPS 위치 및 날씨 정보 확인 중...</div>
+                </div>
+            `;
+
+            savedLocations.forEach((loc, index) => {
+                container.innerHTML += `
+                    <div class="weather-card" id="loc-weather-${index}">
+                        <div class="loading">${loc.name} 날씨 로딩 중...</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML += `
+                <div class="add-location-card">
+                    <button class="add-btn" id="btn-show-add" onclick="showAddForm()">[+ 지역 추가]</button>
+                    <div class="add-form" id="add-loc-form">
+                        <input type="text" id="loc-input" class="add-input" placeholder="도시명 입력 (예: 서울)">
+                        <div class="add-actions">
+                            <button class="btn-submit" onclick="addLocation()">추가</button>
+                            <button class="btn-cancel" onclick="hideAddForm()">취소</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            fetchGpsWeather();
+            savedLocations.forEach((loc, index) => fetchWeatherData(loc.lat, loc.lon, loc.name, `loc-weather-${index}`, index));
+        }
+
+        async function fetchWeatherData(lat, lon, locationName, elementId, index = null) {
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&hourly=precipitation_probability&timezone=auto&forecast_days=1`);
+                const data = await res.json();
+                
+                const current = data.current;
+                const wInfo = parseWeatherCode(current.weathercode);
+                
+                // 강수 확률 계산
+                const currentHourStart = new Date();
+                currentHourStart.setMinutes(0, 0, 0);
+                
+                let warnings = [];
+                for (let i = 0; i < data.hourly.time.length; i++) {
+                    const time = new Date(data.hourly.time[i]);
+                    const prob = data.hourly.precipitation_probability[i];
+                    if (time >= currentHourStart && prob >= 40) {
+                        const probText = prob >= 70 ? `<span class="prob-high">${prob}%</span>` : `${prob}%`;
+                        warnings.push(`${formatHour(data.hourly.time[i])} ${probText}`);
+                    }
+                }
+
+                let warningHtml = '';
+                if (warnings.length > 0) {
+                    warningHtml = `<div class="weather-warning">🌧️ ${warnings.join(' · ')}</div>`;
+                }
+
+                let deleteBtnHtml = index !== null ? `<button class="delete-btn" onclick="removeLocation(${index})">✕</button>` : '';
+
+                document.getElementById(elementId).innerHTML = `
+                    ${deleteBtnHtml}
+                    <div class="weather-location">📍 ${locationName}</div>
+                    <div class="weather-main">
+                        <span class="weather-icon">${wInfo.icon}</span>
+                        <span class="weather-temp">${current.temperature_2m}°C</span>
+                        <span class="weather-desc">${wInfo.text}</span>
+                    </div>
+                    <div class="weather-sub">
+                        <span>💨 풍속: ${current.windspeed_10m} m/s</span>
+                        <span>💧 습도: ${current.relativehumidity_2m}%</span>
+                    </div>
+                    ${warningHtml}
+                `;
+            } catch (e) {
+                document.getElementById(elementId).innerHTML = `<div class="error-text">${locationName} 날씨 로딩 실패</div>`;
+            }
+        }
+
+        function fetchGpsWeather() {
             if (!navigator.geolocation) {
-                document.getElementById('weather-box').innerHTML = '<div class="error-text">GPS를 지원하지 않는 브라우저입니다.</div>';
+                document.getElementById('gps-weather-card').innerHTML = '<div class="error-text">GPS 미지원 브라우저</div>';
                 return;
             }
-
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const lat = pos.coords.latitude;
                 const lon = pos.coords.longitude;
-
                 try {
                     const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
                     const geoData = await geoRes.json();
-                    const city = geoData.address.city || geoData.address.county || geoData.address.town || geoData.address.borough || '알 수 없는 위치';
-
-                    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&timezone=auto`);
-                    const weatherData = await weatherRes.json();
-                    const current = weatherData.current;
-                    const wInfo = parseWeatherCode(current.weathercode);
-
-                    document.getElementById('weather-box').innerHTML = `
-                        <div class="weather-location">📍 ${city}</div>
-                        <div class="weather-main">
-                            <span class="weather-icon">${wInfo.icon}</span>
-                            <span class="weather-temp">${current.temperature_2m}°C</span>
-                            <span class="weather-desc">${wInfo.text}</span>
-                        </div>
-                        <div class="weather-sub">
-                            <span>💨 풍속: ${current.windspeed_10m} m/s</span>
-                            <span>💧 습도: ${current.relativehumidity_2m}%</span>
-                        </div>
-                    `;
+                    const city = geoData.address.city || geoData.address.county || geoData.address.town || '현재 위치';
+                    fetchWeatherData(lat, lon, city, 'gps-weather-card');
                 } catch (e) {
-                    document.getElementById('weather-box').innerHTML = '<div class="error-text">날씨 데이터를 불러오지 못했습니다.</div>';
+                    fetchWeatherData(lat, lon, '현재 위치', 'gps-weather-card');
                 }
-            }, (err) => {
-                document.getElementById('weather-box').innerHTML = '<div class="error-text">위치 권한을 허용해주세요.</div>';
+            }, () => {
+                document.getElementById('gps-weather-card').innerHTML = '<div class="error-text">위치 권한을 허용해주세요.</div>';
             });
         }
-        
-        fetchWeather();
-        setInterval(fetchWeather, 600000); // 10분마다 갱신
+
+        function showAddForm() {
+            document.getElementById('btn-show-add').style.display = 'none';
+            document.getElementById('add-loc-form').style.display = 'flex';
+            document.getElementById('loc-input').focus();
+        }
+
+        function hideAddForm() {
+            document.getElementById('btn-show-add').style.display = 'flex';
+            document.getElementById('add-loc-form').style.display = 'none';
+            document.getElementById('loc-input').value = '';
+        }
+
+        async function addLocation() {
+            const input = document.getElementById('loc-input').value.trim();
+            if (!input) return;
+            
+            const btn = document.querySelector('.btn-submit');
+            btn.innerText = '검색 중...';
+            btn.disabled = true;
+
+            try {
+                const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(input)}&format=json&limit=1`);
+                const locData = await geoRes.json();
+                
+                if (locData && locData.length > 0) {
+                    const newLoc = {
+                        lat: locData[0].lat,
+                        lon: locData[0].lon,
+                        name: locData[0].display_name.split(',')[0]
+                    };
+                    savedLocations.push(newLoc);
+                    localStorage.setItem('weatherLocations', JSON.stringify(savedLocations));
+                    renderWeatherCards();
+                } else {
+                    alert('지역을 찾을 수 없습니다.');
+                }
+            } catch (e) {
+                alert('검색 중 오류가 발생했습니다.');
+            }
+            hideAddForm();
+        }
+
+        function removeLocation(index) {
+            savedLocations.splice(index, 1);
+            localStorage.setItem('weatherLocations', JSON.stringify(savedLocations));
+            renderWeatherCards();
+        }
+
+        renderWeatherCards();
+        setInterval(renderWeatherCards, 600000);
 
 
         // --- Section 2: Financial Dashboard Logic ---
@@ -329,7 +518,6 @@
 
         async function fetchWithProxies(symbol) {
             const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
-            
             try {
                 const proxy1 = 'https://api.allorigins.win/get?url=';
                 const res1 = await fetch(proxy1 + encodeURIComponent(targetUrl));
@@ -341,7 +529,6 @@
                     }
                 }
             } catch (e) {}
-
             try {
                 const proxy2 = 'https://corsproxy.io/?';
                 const res2 = await fetch(proxy2 + targetUrl);
@@ -350,7 +537,6 @@
                     if (json.chart && json.chart.result) return json;
                 }
             } catch (e) {}
-
             throw new Error('모든 프록시 시도 실패');
         }
 
@@ -395,9 +581,7 @@
         async function fetchExchangeRates() {
             try {
                 const response = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
-                
                 if (!response.ok) throw new Error();
-                
                 const data = await response.json();
                 const usdKrw = data.usd.krw;
                 const usdJpy = data.usd.jpy;
@@ -407,20 +591,13 @@
                     <h2 class="card-title">달러/원 (USD/KRW)</h2>
                     <div class="price neutral">${formatter.format(usdKrw)}</div>
                 `;
-                
                 document.getElementById('jpy-card').innerHTML = `
                     <h2 class="card-title">100엔/원 (JPY 100/KRW)</h2>
                     <div class="price neutral">${formatter.format(jpy100Krw)}</div>
                 `;
             } catch (error) {
-                document.getElementById('usd-card').innerHTML = `
-                    <h2 class="card-title">달러/원 (USD/KRW)</h2>
-                    <div class="error-text">데이터 로딩 실패 - 재시도 중...</div>
-                `;
-                document.getElementById('jpy-card').innerHTML = `
-                    <h2 class="card-title">100엔/원 (JPY 100/KRW)</h2>
-                    <div class="error-text">데이터 로딩 실패 - 재시도 중...</div>
-                `;
+                document.getElementById('usd-card').innerHTML = `<h2 class="card-title">달러/원 (USD/KRW)</h2><div class="error-text">데이터 로딩 실패 - 재시도 중...</div>`;
+                document.getElementById('jpy-card').innerHTML = `<h2 class="card-title">100엔/원 (JPY 100/KRW)</h2><div class="error-text">데이터 로딩 실패 - 재시도 중...</div>`;
             }
         }
 
@@ -429,12 +606,9 @@
             renderStockCard('^KQ11', 'kosdaq-card', '코스닥 (KOSDAQ)', 'KR');
             renderStockCard('^IXIC', 'nasdaq-card', '나스닥 (NASDAQ)', 'US');
             renderStockCard('^GSPC', 'sp500-card', 'S&P 500', 'US');
-            
             fetchExchangeRates();
-            
             const now = new Date();
-            const timeString = now.toLocaleTimeString('ko-KR', { hour12: false });
-            document.getElementById('last-updated').innerText = `마지막 업데이트: ${timeString}`;
+            document.getElementById('last-updated').innerText = `마지막 업데이트: ${now.toLocaleTimeString('ko-KR', { hour12: false })}`;
         }
 
         updateDashboard();
