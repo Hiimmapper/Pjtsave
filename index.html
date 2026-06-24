@@ -2,451 +2,224 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Enterprise Resilient Dashboard</title>
-    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 금융 대시보드</title>
     <style>
         :root {
-            --bg-color: #050505; --text-primary: #FFFFFF; --text-secondary: #8E8E93;
-            --color-up: #34C759; --color-down: #FF3B30; --color-flat: #8E8E93;
-            --color-live: #34C759; --color-cached: #FFCC00; --color-offline: #FF3B30;
-            --glass-bg: rgba(20, 20, 22, 0.6); --glass-border: rgba(255, 255, 255, 0.08);
-            --radius-md: 16px; --font-en: 'Inter', sans-serif; --font-kr: 'Pretendard Variable', sans-serif;
-            --color-link-hover: rgba(255, 255, 255, 0.08); --color-read: #636366;
+            --bg-main: #1a1a2e;
+            --bg-card: #16213e;
+            --text-main: #ffffff;
+            --text-sub: #94a3b8;
+            --color-up: #ff3333;
+            --color-down: #3377ff;
+            --color-error: #f59e0b;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            background-color: var(--bg-color); color: var(--text-primary); font-family: var(--font-kr);
-            min-height: 100vh; overflow-y: auto; overflow-x: hidden; padding: 30px;
-            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
-            background-size: cover; background-position: center; background-attachment: fixed; scrollbar-width: none;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        body::-webkit-scrollbar { display: none; }
-        .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at top right, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.9) 80%); z-index: -1; }
 
-        .dashboard-container { max-width: 2400px; margin: 0 auto; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+        .header {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2a2a4a;
+            padding-bottom: 10px;
+        }
 
-        .glass-card { background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 24px; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
 
-        /* Status Badges */
-        .status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
-        .section-title { font-family: var(--font-en); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); }
-        .sync-status { display: flex; align-items: center; gap: 8px; font-family: var(--font-en); font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
-        .sync-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .status-live .sync-dot { background: var(--color-live); box-shadow: 0 0 8px var(--color-live); animation: pulse 2s infinite; }
-        .status-live .sync-text { color: var(--color-live); }
-        .status-cached .sync-dot { background: var(--color-cached); }
-        .status-cached .sync-text { color: var(--color-cached); }
-        .status-offline .sync-dot { background: var(--color-offline); }
-        .status-offline .sync-text { color: var(--color-offline); }
+        .update-time {
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
 
-        /* Header */
-        .header-panel { grid-column: span 12; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10px; }
-        .time { font-family: var(--font-en); font-size: 4rem; font-weight: 700; line-height: 1; letter-spacing: -2px; }
-        .date { font-size: 1.2rem; color: var(--text-secondary); font-weight: 500; margin-top: 8px; }
-        .temp { font-family: var(--font-en); font-size: 3.5rem; font-weight: 300; line-height: 1; }
-        .desc { font-size: 1.1rem; color: var(--text-secondary); text-align: right; margin-top: 5px; }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
 
-        /* Finance Grid */
-        .finance-panel { grid-column: span 8; }
-        .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .finance-item { display: flex; flex-direction: column; gap: 6px; }
-        .f-name { font-family: var(--font-en); font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; }
-        .f-price { font-family: var(--font-en); font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
-        .f-change-group { font-family: var(--font-en); font-size: 0.95rem; font-weight: 600; display: flex; gap: 6px; }
-        .up { color: var(--color-up); } .down { color: var(--color-down); } .flat { color: var(--color-flat); }
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-        /* Complete Error Card Fallback */
-        .error-card { grid-column: span 4; background: rgba(255, 59, 48, 0.08); border: 1px solid rgba(255, 59, 48, 0.3); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 6px; justify-content: center; align-items: center; text-align: center; }
-        .error-title { color: var(--color-offline); font-weight: 700; font-size: 1rem; }
-        .error-detail { color: var(--text-secondary); font-size: 0.8rem; word-break: break-word; }
+        .card-title {
+            font-size: 1rem;
+            color: var(--text-sub);
+            margin: 0;
+            font-weight: 600;
+        }
 
-        /* Weather 24H */
-        .weather-panel { grid-column: span 8; }
-        .hourly-scroll { display: flex; overflow-x: auto; gap: 16px; scrollbar-width: none; }
-        .hourly-item { min-width: 70px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; }
-        .h-time { font-family: var(--font-en); font-size: 0.85rem; color: var(--text-secondary); }
-        .h-icon { font-size: 1.8rem; }
-        .h-temp { font-family: var(--font-en); font-size: 1.1rem; font-weight: 600; }
+        .price {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
 
-        /* News List */
-        .news-panel { grid-column: span 4; grid-row: span 2; display: flex; flex-direction: column; }
-        .news-list { display: flex; flex-direction: column; gap: 8px; }
-        .news-item-link { text-decoration: none; color: inherit; display: block; border-radius: 8px; transition: all 0.2s ease; position: relative; min-height: 44px; padding: 12px 16px; margin: 0 -16px; outline: none; -webkit-tap-highlight-color: transparent; }
-        .news-item-link:hover { background-color: var(--color-link-hover); }
-        .news-item-link:hover .news-title { text-decoration: underline; text-underline-offset: 4px; }
-        .news-content { display: flex; flex-direction: column; gap: 6px; }
-        .news-header { display: flex; justify-content: space-between; align-items: center; }
-        .news-meta-group { display: flex; align-items: center; gap: 8px; }
-        .badge-breaking { display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 59, 48, 0.15); color: var(--color-down); padding: 2px 6px; border-radius: 4px; font-family: var(--font-en); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; }
-        .badge-breaking::before { content: ''; display: block; width: 6px; height: 6px; background-color: var(--color-down); border-radius: 50%; animation: pulse 1.5s infinite; }
-        .source-tag { font-size: 0.75rem; font-weight: 600; color: #aaa; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px; }
-        .publish-time { font-family: var(--font-en); font-size: 0.75rem; color: var(--text-tertiary); }
-        .title-wrapper { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-        .news-title { font-size: 1.05rem; line-height: 1.45; font-weight: 500; color: var(--text-primary); word-break: keep-all; flex-grow: 1; }
-        .external-icon { font-size: 0.8rem; color: var(--text-secondary); opacity: 0.3; margin-top: 4px; }
-        .news-item-link.is-read .news-title { color: var(--color-read); font-weight: 400; text-decoration: none;}
-        .news-item-link.is-read .source-tag, .news-item-link.is-read .publish-time { opacity: 0.5; }
+        .change {
+            font-size: 1rem;
+            font-weight: 600;
+        }
 
-        /* Skeleton & Utils */
-        .skeleton { background: #2a2a2d; background-image: linear-gradient(90deg, #2a2a2d 0px, #3a3a3d 40px, #2a2a2d 80px); background-size: 200% 100%; animation: shimmer 1.5s infinite linear; border-radius: 4px; color: transparent !important; pointer-events: none; }
-        .skeleton * { visibility: hidden; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,59,48, 0.4); } 70% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(255,59,48, 0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,59,48, 0); } }
-        .offline-warning { font-size: 0.75rem; color: var(--color-offline); margin-top: 4px; display: block; font-weight: 500;}
+        .up { color: var(--color-up); }
+        .down { color: var(--color-down); }
+        .neutral { color: var(--text-main); }
+
+        .error-text {
+            color: var(--color-error);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+        
+        .loading {
+            color: var(--text-sub);
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
-    <div class="overlay"></div>
 
-    <main class="dashboard-container">
-        <header class="header-panel">
-            <div>
-                <h1 class="time" id="clock-time">00:00</h1>
-                <div class="date" id="clock-date">Loading...</div>
-            </div>
-            <div style="text-align: right;">
-                <div class="temp skeleton" id="cur-temp">00°</div>
-                <div class="desc skeleton" id="cur-desc">Loading Weather</div>
-            </div>
-        </header>
+    <div class="header">
+        <h1>Market Dashboard</h1>
+        <div class="update-time" id="last-updated">마지막 업데이트: --:--:--</div>
+    </div>
 
-        <section class="glass-card finance-panel" id="card-finance">
-            <div class="status-bar">
-                <div class="section-title">Markets</div>
-                <div class="sync-status status-cached">
-                    <span class="sync-dot"></span><span class="sync-text">INIT</span>
-                    <span class="sync-time" id="time-finance">--</span>
-                </div>
-            </div>
-            <div class="finance-grid" id="finance-grid"></div>
-        </section>
-
-        <section class="glass-card news-panel" id="card-news">
-            <div class="status-bar">
-                <div class="section-title">Live Updates</div>
-                <div class="sync-status status-cached">
-                    <span class="sync-dot"></span><span class="sync-text">INIT</span>
-                    <span class="sync-time" id="time-news">--</span>
-                </div>
-            </div>
-            <div class="news-list" id="news-list"></div>
-        </section>
-
-        <section class="glass-card weather-panel" id="card-weather">
-            <div class="status-bar">
-                <div class="section-title">24-Hour Forecast</div>
-                <div class="sync-status status-cached">
-                    <span class="sync-dot"></span><span class="sync-text">INIT</span>
-                    <span class="sync-time" id="time-weather">--</span>
-                </div>
-            </div>
-            <div class="hourly-scroll" id="hourly-list"></div>
-        </section>
-    </main>
+    <div class="grid-container">
+        <div class="card" id="kospi-card">
+            <h2 class="card-title">코스피 (KOSPI)</h2>
+            <div class="loading">데이터 로딩 중...</div>
+        </div>
+        <div class="card" id="kosdaq-card">
+            <h2 class="card-title">코스닥 (KOSDAQ)</h2>
+            <div class="loading">데이터 로딩 중...</div>
+        </div>
+        <div class="card" id="usd-card">
+            <h2 class="card-title">달러/원 (USD/KRW)</h2>
+            <div class="loading">데이터 로딩 중...</div>
+        </div>
+        <div class="card" id="jpy-card">
+            <h2 class="card-title">100엔/원 (JPY 100/KRW)</h2>
+            <div class="loading">데이터 로딩 중...</div>
+        </div>
+    </div>
 
     <script>
-        class CacheManager {
-            static set(key, data) { try { localStorage.setItem(`db_cache_${key}`, JSON.stringify({ data, timestamp: Date.now() })); } catch (e) { console.error('CacheSet Error:', e); } }
-            static get(key) { try { const item = localStorage.getItem(`db_cache_${key}`); return item ? JSON.parse(item) : null; } catch (e) { return null; } }
-            static getAgeString(timestamp) {
-                if (!timestamp) return 'Unknown';
-                const diffSec = Math.floor((Date.now() - timestamp) / 1000);
-                if (diffSec < 60) return `${diffSec}s ago`;
-                if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
-                return `${Math.floor(diffSec / 3600)}h ago`;
-            }
-        }
+        const formatter = new Intl.NumberFormat('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        // [요청 1 반영] Fetch 로직: Timeout, Exponential Backoff, 콘솔 에러 로깅 강화
-        class ResilientFetcher {
-            static circuitBreaker = new Map();
-            static async fetchWithTimeout(url, timeoutMs = 5000) {
-                const controller = new AbortController(); const id = setTimeout(() => controller.abort(), timeoutMs);
-                try { const res = await fetch(url, { signal: controller.signal, cache: 'no-store' }); clearTimeout(id); if (!res.ok) throw new Error(`HTTP_${res.status}`); return res; } catch (err) { clearTimeout(id); throw err; }
-            }
-            
-            static async execute(url, maxRetries = 3) {
-                const cbState = this.circuitBreaker.get(url) || { fails: 0, openUntil: 0 };
-                if (cbState.fails >= 3 && Date.now() < cbState.openUntil) {
-                    console.warn(`[Circuit Breaker OPEN] 요청 차단됨: ${url}`);
-                    throw new Error("CIRCUIT_BREAKER_OPEN");
+        async function fetchStockData(symbol, elementId, title) {
+            try {
+                const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`, {
+                    mode: 'cors',
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                const meta = data.chart.result[0].meta;
+                const price = meta.regularMarketPrice;
+                const prevClose = meta.previousClose;
+                
+                const change = price - prevClose;
+                const changePercent = (change / prevClose) * 100;
+                
+                let colorClass = 'neutral';
+                let sign = '';
+                if (change > 0) {
+                    colorClass = 'up';
+                    sign = '+';
+                } else if (change < 0) {
+                    colorClass = 'down';
                 }
 
-                for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                    try {
-                        const res = await this.fetchWithTimeout(url);
-                        this.circuitBreaker.set(url, { fails: 0, openUntil: 0 });
-                        
-                        // Parse JSON safely
-                        const ct = res.headers.get("content-type");
-                        return (ct && ct.includes("application/json")) ? await res.json() : await res.text();
-                    } catch (err) {
-                        console.warn(`[API 시도 ${attempt + 1}/${maxRetries + 1} 실패] ${url} | 원인: ${err.message}`);
-                        if (attempt === maxRetries || err.name === 'AbortError') {
-                            cbState.fails += 1; if (cbState.fails >= 3) cbState.openUntil = Date.now() + 10000;
-                            this.circuitBreaker.set(url, cbState); throw err;
-                        }
-                        const backoffTime = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s...
-                        await new Promise(r => setTimeout(r, backoffTime));
-                    }
-                }
-            }
-        }
-
-        // 야후 파이낸스 우회 경로 3중화 (GET 방식 사용하여 안정성 향상)
-        const ServerlessRoutes = {
-            finance: {
-                primary: () => ResilientFetcher.execute(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC')}`),
-                backup: () => ResilientFetcher.execute(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC')}`),
-                backup2: () => ResilientFetcher.execute(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v7/finance/quote?symbols=^KS11,^KQ11,^IXIC')}`)
-            },
-            fx: {
-                primary: () => ResilientFetcher.execute('https://open.er-api.com/v6/latest/USD'),
-                backup: () => ResilientFetcher.execute('https://api.frankfurter.app/latest?from=USD&to=KRW')
-            },
-            weather: { primary: (lat, lon) => ResilientFetcher.execute(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,weathercode&timezone=auto`) },
-            news: {
-                primary: () => ResilientFetcher.execute(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://rss.hankyung.com/feed/economy.xml')}&t=${Date.now()}`),
-                backup: () => ResilientFetcher.execute(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://news.sbs.co.kr/news/SectionRssFeed.do?sectionId=02')}`)
-            }
-        };
-
-        class Dashboard {
-            constructor() {
-                this.numFormatter = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                this.readArticles = new Set(JSON.parse(localStorage.getItem('read_articles') || '[]'));
-                this.initSkeletons();
-                this.start();
-            }
-
-            initSkeletons() {
-                document.getElementById('finance-grid').innerHTML = Array(4).fill('<div class="finance-item skeleton"><div class="f-name">DATA</div><div class="f-price">0000.00</div></div>').join('');
-                document.getElementById('news-list').innerHTML = Array(5).fill('<div class="skeleton" style="height:60px; margin-bottom:8px;"></div>').join('');
-                document.getElementById('hourly-list').innerHTML = Array(8).fill('<div class="hourly-item skeleton"><div class="h-time">00:00</div><div class="h-icon">☀️</div><div class="h-temp">00°</div></div>').join('');
-            }
-
-            // [요청 2 반영] 상태 관리를 실제 렌더링 시점에 적용
-            updateStatus(cardId, status, timestamp) {
-                const card = document.getElementById(cardId);
-                card.querySelector('.sync-status').className = `sync-status status-${status}`;
-                card.querySelector('.sync-text').innerText = status.toUpperCase();
-                card.querySelector('.sync-time').innerText = CacheManager.getAgeString(timestamp);
-            }
-
-            async start() {
-                this.tickClock();
-                this.loadFromCache();
-                await this.refreshAll();
-                setInterval(() => this.refreshAll(), 60000);
-            }
-
-            tickClock() {
-                const update = () => {
-                    const now = new Date();
-                    document.getElementById('clock-time').innerText = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-                    document.getElementById('clock-date').innerText = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-                    requestAnimationFrame(update);
-                };
-                update();
-            }
-
-            loadFromCache() {
-                const w = CacheManager.get('weather'), f = CacheManager.get('finance'), n = CacheManager.get('news');
-                if (w) this.renderWeather(w.data, 'cached', w.timestamp);
-                if (f) this.renderFinance(f.data, 'cached', f.timestamp);
-                if (n) this.renderNews(n.data, 'cached', n.timestamp);
-            }
-
-            async refreshAll() { await Promise.allSettled([this.syncWeather(), this.syncFinance(), this.syncNews()]); }
-
-            // ================= Finance (MARKETS 집중 개선) =================
-            async syncFinance() {
-                // 시작 시 캐시가 없으면 스켈레톤을 띄워 빈 화면 방지
-                if (!CacheManager.get('finance')) {
-                    this.initSkeletons();
-                    this.updateStatus('card-finance', 'cached', Date.now()); 
-                }
-
-                try {
-                    let fxData, stockData;
-
-                    // 환율 로직
-                    try { fxData = { rate: (await ServerlessRoutes.fx.primary()).rates.KRW }; } 
-                    catch (e) { fxData = { rate: (await ServerlessRoutes.fx.backup()).rates.KRW }; }
-                    
-                    // [요청 1 반영] 주식 로직 3중 Fallback 체인 명시화
-                    let stockRes;
-                    try { stockRes = await ServerlessRoutes.finance.primary(); } 
-                    catch (e1) {
-                        console.warn("Finance Primary 실패, Backup 1 시도...");
-                        try { stockRes = await ServerlessRoutes.finance.backup(); } 
-                        catch (e2) {
-                            console.warn("Finance Backup 1 실패, Backup 2 시도...");
-                            stockRes = await ServerlessRoutes.finance.backup2();
-                        }
-                    }
-
-                    // [요청 3 반영] 응답 구조(Key Mapping) 안전성 검사
-                    const parsedStock = stockRes.contents ? JSON.parse(stockRes.contents) : stockRes;
-                    if (!parsedStock || !parsedStock.quoteResponse || !parsedStock.quoteResponse.result) {
-                        throw new Error("Invalid API Response Structure (Blocked by Yahoo)");
-                    }
-                    stockData = parsedStock.quoteResponse.result;
-
-                    const finalData = { fx: fxData, stocks: stockData };
-                    CacheManager.set('finance', finalData);
-                    
-                    // [요청 2 반영] 렌더링 호출 및 상태 LIVE로 즉각 업데이트
-                    this.renderFinance(finalData, 'live', Date.now());
-                } catch (err) {
-                    // [요청 1 반영] 에러 콘솔 출력
-                    console.error("❌ MARKETS 위젯 데이터 패치 최종 실패:", err);
-                    
-                    const cache = CacheManager.get('finance');
-                    if (cache) {
-                        this.renderFinance(cache.data, 'offline', cache.timestamp);
-                    } else {
-                        // [요청 5 반영] 캐시마저 없을 때 완전 실패 표시 (Awaiting 대신 명확한 에러 카드)
-                        document.getElementById('finance-grid').innerHTML = `
-                            <div class="error-card">
-                                <span class="error-title">⚠ OFFLINE: 데이터 로딩 실패</span>
-                                <span class="error-detail">원인: ${err.message} <br/> 서버 응답이 차단되었습니다. 백그라운드 재시도 중입니다...</span>
-                            </div>
-                        `;
-                        this.updateStatus('card-finance', 'offline', null);
-                    }
-                }
-            }
-
-            renderFinance(data, status, timestamp) {
-                let html = `
-                    <div class="finance-item">
-                        <span class="f-name">USD/KRW</span>
-                        <span class="f-price">${this.numFormatter.format(data.fx.rate)}</span>
-                        <span class="f-change-group flat">Market Rate</span>
-                        ${status === 'offline' ? '<span class="offline-warning">⚠ Network Offline</span>' : ''}
+                document.getElementById(elementId).innerHTML = `
+                    <h2 class="card-title">${title}</h2>
+                    <div class="price ${colorClass}">${formatter.format(price)}</div>
+                    <div class="change ${colorClass}">
+                        ${sign}${formatter.format(change)} (${sign}${changePercent.toFixed(2)}%)
                     </div>
                 `;
-                const mapping = { '^KS11': 'KOSPI', '^KQ11': 'KOSDAQ', '^IXIC': 'NASDAQ' };
-                data.stocks.forEach(item => {
-                    if(!mapping[item.symbol]) return;
-                    const change = item.regularMarketChange || 0; const color = change > 0 ? 'up' : (change < 0 ? 'down' : 'flat'); const sign = change > 0 ? '+' : '';
-                    html += `
-                        <div class="finance-item">
-                            <span class="f-name">${mapping[item.symbol]}</span>
-                            <span class="f-price">${this.numFormatter.format(item.regularMarketPrice)}</span>
-                            <span class="f-change-group ${color}"><span>${sign}${this.numFormatter.format(change)}</span><span>(${sign}${item.regularMarketChangePercent.toFixed(2)}%)</span></span>
-                            ${status === 'offline' ? '<span class="offline-warning">⚠ Displaying Cached Data</span>' : ''}
-                        </div>
-                    `;
-                });
-                document.getElementById('finance-grid').innerHTML = html;
-                this.updateStatus('card-finance', status, timestamp);
-            }
-
-            // ================= News (LIVE UPDATES) =================
-            async syncNews() {
-                try {
-                    let items, sourceName;
-                    try {
-                        const res = await ServerlessRoutes.news.primary();
-                        if(res.status !== 'ok') throw new Error();
-                        items = res.items; sourceName = "한국경제";
-                    } catch (e1) {
-                        const res2 = await ServerlessRoutes.news.backup();
-                        if(res2.status !== 'ok') throw new Error();
-                        items = res2.items; sourceName = "SBS 경제";
-                    }
-
-                    const cleanData = items.slice(0, 6).map((item, index) => ({
-                        id: btoa(item.link).substring(0, 15), title: item.title.split(' - ')[0], url: item.link, source: sourceName, publishedAt: item.pubDate || new Date().toISOString(), isBreaking: index === 0 
-                    }));
-                    
-                    CacheManager.set('news', cleanData);
-                    this.renderNews(cleanData, 'live', Date.now());
-                } catch (err) {
-                    console.error("❌ News 패치 실패:", err);
-                    const cache = CacheManager.get('news');
-                    if (cache) this.renderNews(cache.data, 'offline', cache.timestamp);
-                }
-            }
-
-            getTimeAgo(dateString) {
-                const diff = Math.floor((new Date() - new Date(dateString)) / 60000);
-                if (diff < 60) return `${diff}분 전`;
-                if (diff < 1440) return `${Math.floor(diff/60)}시간 전`;
-                return '오늘';
-            }
-
-            markAsRead(id, url) {
-                this.readArticles.add(id);
-                if (this.readArticles.size > 50) {
-                    const arr = Array.from(this.readArticles);
-                    this.readArticles = new Set(arr.slice(arr.length - 50));
-                }
-                localStorage.setItem('read_articles', JSON.stringify(Array.from(this.readArticles)));
-                document.getElementById(`news-${id}`).classList.add('is-read');
-                window.open(url, "_blank", "noopener,noreferrer");
-            }
-
-            renderNews(data, status, timestamp) {
-                const container = document.getElementById('news-list');
-                container.innerHTML = '';
-
-                data.forEach(article => {
-                    const isReadClass = this.readArticles.has(article.id) ? 'is-read' : '';
-                    const breakingBadge = article.isBreaking ? `<span class="badge-breaking">BREAKING</span>` : '';
-                    const itemHtml = `
-                        <div id="news-${article.id}" class="news-item-link ${isReadClass}" onclick="dashboardApp.markAsRead('${article.id}', '${article.url}')" role="link" tabindex="0">
-                            <div class="news-content">
-                                <div class="news-header">
-                                    <div class="news-meta-group">${breakingBadge}<span class="source-tag">${article.source}</span><span class="publish-time" title="${new Date(article.publishedAt).toLocaleString()}">${this.getTimeAgo(article.publishedAt)}</span></div>
-                                </div>
-                                <div class="title-wrapper">
-                                    <h3 class="news-title">${article.title}</h3>
-                                    <span class="external-icon">↗</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    container.innerHTML += itemHtml;
-                });
-
-                if (status === 'offline') container.innerHTML += '<div class="offline-warning" style="padding-left:16px;">⚠ Showing cached news. Network offline.</div>';
-                this.updateStatus('card-news', status, timestamp);
-            }
-
-            // ================= Weather =================
-            async syncWeather() {
-                try {
-                    const lat = 35.1796, lon = 129.0756; 
-                    const data = await ServerlessRoutes.weather.primary(lat, lon);
-                    const cleanData = { temp: Math.round(data.current_weather.temperature), code: data.current_weather.weathercode, hourly: data.hourly.time.map((t, i) => ({ time: t, temp: Math.round(data.hourly.temperature_2m[i]), code: data.hourly.weathercode[i] })) };
-                    CacheManager.set('weather', cleanData); this.renderWeather(cleanData, 'live', Date.now());
-                } catch (err) { console.error("❌ Weather 패치 실패:", err); const cache = CacheManager.get('weather'); if (cache) this.renderWeather(cache.data, 'offline', cache.timestamp); }
-            }
-
-            renderWeather(data, status, timestamp) {
-                document.getElementById('cur-temp').classList.remove('skeleton'); document.getElementById('cur-desc').classList.remove('skeleton');
-                document.getElementById('cur-temp').innerText = `${data.temp}°`;
-                const getIcon = (code) => { if (code <= 3) return "⛅"; if (code >= 45 && code <= 48) return "🌫️"; if (code >= 51 && code <= 69) return "🌧️"; if (code >= 71 && code <= 79) return "❄️"; return "⛈️"; };
-                document.getElementById('cur-desc').innerText = "Busan (Connected)";
-                
-                let html = ''; const nowHour = new Date().getHours(); let startIdx = data.hourly.findIndex(h => new Date(h.time).getHours() === nowHour && new Date(h.time) >= new Date().setHours(0,0,0,0)); if(startIdx === -1) startIdx = 0;
-                for (let i = startIdx; i < startIdx + 24; i += 3) {
-                    if (!data.hourly[i]) break; const h = data.hourly[i]; const hr = new Date(h.time).getHours().toString().padStart(2, '0') + ':00';
-                    html += `<div class="hourly-item"><span class="h-time">${hr}</span><span class="h-icon">${getIcon(h.code)}</span><span class="h-temp">${h.temp}°</span></div>`;
-                }
-                document.getElementById('hourly-list').innerHTML = html; this.updateStatus('card-weather', status, timestamp);
+            } catch (error) {
+                console.error(`[${title}] Fetch Error:`, error);
+                document.getElementById(elementId).innerHTML = `
+                    <h2 class="card-title">${title}</h2>
+                    <div class="error-text">데이터 로딩 실패 - 재시도 중...</div>
+                `;
             }
         }
 
-        let dashboardApp;
-        document.addEventListener('DOMContentLoaded', () => { dashboardApp = new Dashboard(); });
+        async function fetchExchangeRates() {
+            try {
+                const response = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                const usdKrw = data.usd.krw;
+                const usdJpy = data.usd.jpy;
+                const jpy100Krw = (usdKrw / usdJpy) * 100;
+
+                document.getElementById('usd-card').innerHTML = `
+                    <h2 class="card-title">달러/원 (USD/KRW)</h2>
+                    <div class="price neutral">${formatter.format(usdKrw)}</div>
+                `;
+                
+                document.getElementById('jpy-card').innerHTML = `
+                    <h2 class="card-title">100엔/원 (JPY 100/KRW)</h2>
+                    <div class="price neutral">${formatter.format(jpy100Krw)}</div>
+                `;
+            } catch (error) {
+                console.error('[환율] Fetch Error:', error);
+                document.getElementById('usd-card').innerHTML = `
+                    <h2 class="card-title">달러/원 (USD/KRW)</h2>
+                    <div class="error-text">데이터 로딩 실패 - 재시도 중...</div>
+                `;
+                document.getElementById('jpy-card').innerHTML = `
+                    <h2 class="card-title">100엔/원 (JPY 100/KRW)</h2>
+                    <div class="error-text">데이터 로딩 실패 - 재시도 중...</div>
+                `;
+            }
+        }
+
+        function updateDashboard() {
+            fetchStockData('^KS11', 'kospi-card', '코스피 (KOSPI)');
+            fetchStockData('^KQ11', 'kosdaq-card', '코스닥 (KOSDAQ)');
+            fetchExchangeRates();
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ko-KR', { hour12: false });
+            document.getElementById('last-updated').innerText = `마지막 업데이트: ${timeString}`;
+        }
+
+        // 초기 로드
+        updateDashboard();
+
+        // 30초마다 자동 갱신
+        setInterval(updateDashboard, 30000);
     </script>
 </body>
 </html>
