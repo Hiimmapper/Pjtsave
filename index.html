@@ -299,98 +299,34 @@
         }
 
         /* --- Section 3: Economic News --- */
-        .news-header {
+        .news-header-top {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            justify-content: flex-end;
             margin-bottom: 10px;
         }
 
-        .news-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
+        .news-section {
             background-color: var(--bg-card);
-            color: var(--text-sub);
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .tab-btn.active {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .tab-delete {
-            background: none;
-            border: none;
-            color: inherit;
-            cursor: pointer;
-            padding: 0;
-            font-size: 0.9rem;
-            opacity: 0.6;
-            display: flex;
-            align-items: center;
-        }
-
-        .tab-delete:hover {
-            opacity: 1;
-            color: var(--color-up-kr);
-        }
-
-        .add-sub-form {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-card);
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .add-sub-form input {
-            background: var(--bg-main);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            width: 180px;
-        }
-
-        .add-sub-form button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .article-list {
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-card);
             border-radius: 12px;
             border: 1px solid var(--border-color);
             overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .news-section-header {
+            padding: 15px 20px;
+            background-color: #1e293b;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .news-list {
+            display: flex;
+            flex-direction: column;
         }
 
         .news-card {
@@ -401,6 +337,8 @@
             cursor: pointer;
             transition: background 0.2s;
             align-items: center;
+            text-decoration: none;
+            color: inherit;
         }
 
         .news-card:last-child {
@@ -442,6 +380,14 @@
         .news-meta {
             font-size: 0.85rem;
             color: var(--text-sub);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .news-source {
+            font-weight: 600;
+            color: #e2e8f0;
         }
 
         .hidden { display: none !important; }
@@ -479,23 +425,18 @@
         <hr class="separator">
 
         <div>
-            <div class="news-header">
-                <h2>📰 경제 뉴스</h2>
+            <div class="news-header-top">
                 <div class="update-time" id="news-updated">마지막 갱신: --:--:--</div>
             </div>
-            
-            <div class="tabs" id="news-tabs-container">
-                </div>
 
-            <div class="add-sub-form hidden" id="add-sub-form">
-                <span style="color:var(--text-sub); font-weight:600;">r/</span>
-                <input type="text" id="sub-input" placeholder="서브레딧명 (예: investing)">
-                <button class="btn-submit" onclick="addSubreddit()">추가</button>
-                <button class="btn-cancel" onclick="hideAddSubForm()">취소</button>
+            <div id="kr-news-wrapper" class="news-section hidden">
+                <div class="news-section-header">🇰🇷 국내 경제 뉴스</div>
+                <div class="news-list" id="kr-news-list"></div>
             </div>
 
-            <div class="article-list" id="article-list">
-                <div style="padding:20px; color:var(--text-sub);">기사를 불러오는 중...</div>
+            <div id="en-news-wrapper" class="news-section hidden">
+                <div class="news-section-header">🌐 해외 경제 뉴스</div>
+                <div class="news-list" id="en-news-list"></div>
             </div>
         </div>
     </div>
@@ -821,172 +762,89 @@
         updateDashboard();
         setInterval(updateDashboard, 30000);
 
-
-        // --- Section 3: Economic News Logic ---
-        let customSubreddits = JSON.parse(localStorage.getItem('customSubreddits')) || [];
-        let currentTab = 'gl';
-        let newsData = { gl: [], kr: [], custom: {} };
-
-        function formatNewsTime(unixSec) {
-            const diff = (Date.now() / 1000 - unixSec) / 60;
-            if (isNaN(diff) || diff < 0) return '방금 전';
+        // --- Section 3: Google News RSS Logic ---
+        function timeAgo(pubDateStr) {
+            const diff = (Date.now() - new Date(pubDateStr).getTime()) / 60000;
+            if (isNaN(diff) || diff < 0) return '';
             if (diff < 60) return `${Math.floor(diff)}분 전`;
-            else if (diff < 1440) return `${Math.floor(diff / 60)}시간 전`;
-            else return `${Math.floor(diff / 1440)}일 전`;
+            if (diff < 1440) return `${Math.floor(diff/60)}시간 전`;
+            return `${Math.floor(diff/1440)}일 전`;
         }
 
-        async function fetchHackerNews() {
-            try {
-                const res = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
-                const ids = await res.json();
-                const items = await Promise.all(
-                    ids.slice(0, 15).map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json()))
-                );
-                return items.filter(a => a && a.url).slice(0, 10).map(a => ({
-                    title: a.title,
-                    url: a.url,
-                    time: a.time,
-                    score: a.score || 0,
-                    source: 'HackerNews'
-                }));
-            } catch(e) { return []; }
+        function parseRSS(text) {
+            const xml = new DOMParser().parseFromString(text, 'text/xml');
+            return Array.from(xml.querySelectorAll('item')).slice(0, 8).map(item => ({
+                title: item.querySelector('title')?.textContent?.trim() || '',
+                link: item.querySelector('link')?.textContent?.trim() || '',
+                pubDate: item.querySelector('pubDate')?.textContent || '',
+                source: item.querySelector('source')?.textContent?.trim() || ''
+            }));
         }
 
-        async function fetchReddit(subreddit, query = '') {
-            try {
-                let url = `https://www.reddit.com/r/${subreddit}/`;
-                if (query) {
-                    url += `search.json?q=${encodeURIComponent(query)}&sort=new&limit=15`;
-                } else {
-                    url += `top.json?limit=15&t=day`;
-                }
-                const res = await fetch(url);
-                const data = await res.json();
-                const children = data.data.children.filter(c => c.data && !c.data.is_video);
-                return children.slice(0, 10).map(c => ({
-                    title: c.data.title,
-                    url: c.data.url.startsWith('/r/') ? `https://www.reddit.com${c.data.url}` : c.data.url,
-                    time: c.data.created_utc,
-                    score: c.data.score || 0,
-                    source: `r/${subreddit}`
-                }));
-            } catch(e) { return []; }
-        }
-
-        async function loadAllNews() {
-            document.getElementById('article-list').innerHTML = '<div style="padding:20px; color:var(--text-sub);">뉴스를 불러오는 중...</div>';
-            
-            try {
-                const [hnData, krData] = await Promise.all([
-                    fetchHackerNews(),
-                    fetchReddit('korea', '경제 주식')
-                ]);
-                
-                newsData.gl = hnData;
-                newsData.kr = krData;
-
-                for (const sub of customSubreddits) {
-                    newsData.custom[sub] = await fetchReddit(sub);
-                }
-                
-                document.getElementById('news-updated').innerText = `마지막 갱신: ${new Date().toLocaleTimeString('ko-KR', { hour12: false })}`;
-                renderNews();
-            } catch (e) {
-                document.getElementById('article-list').innerHTML = '<div style="padding:20px; color:var(--color-error);">초기 데이터 로드 중 오류가 발생했습니다.</div>';
+        async function fetchNews(rssUrl) {
+            const proxies = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+            for (const proxy of proxies) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+                    const res = await fetch(proxy + encodeURIComponent(rssUrl), { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    const text = await res.text();
+                    if (text.includes('<item>')) return parseRSS(text);
+                } catch(e) { continue; }
             }
+            return [];
         }
 
-        function renderTabs() {
-            const container = document.getElementById('news-tabs-container');
-            let html = `
-                <button class="tab-btn ${currentTab === 'gl' ? 'active' : ''}" onclick="setTab('gl')">🌐 해외 (HackerNews)</button>
-                <button class="tab-btn ${currentTab === 'kr' ? 'active' : ''}" onclick="setTab('kr')">🇰🇷 국내 (r/korea)</button>
-            `;
-            customSubreddits.forEach(sub => {
-                const isActive = currentTab === sub ? 'active' : '';
-                html += `
-                <button class="tab-btn ${isActive}" onclick="setTab('${sub}')">
-                    r/${sub} 
-                    <span class="tab-delete" onclick="deleteSub(event, '${sub}')">✕</span>
-                </button>`;
-            });
-            html += `<button class="tab-btn" onclick="showAddSubForm()">+ 추가</button>`;
-            container.innerHTML = html;
-        }
-
-        function setTab(tabId) {
-            currentTab = tabId;
-            renderTabs();
-            renderNews();
-        }
-
-        function renderNews() {
-            let data = [];
-            if (currentTab === 'gl') data = newsData.gl;
-            else if (currentTab === 'kr') data = newsData.kr;
-            else data = newsData.custom[currentTab] || [];
+        function renderSection(label, articles, wrapperId, listId) {
+            const wrapper = document.getElementById(wrapperId);
+            const list = document.getElementById(listId);
             
-            const container = document.getElementById('article-list');
-            
-            if (data.length === 0) {
-                container.innerHTML = '<div style="padding:20px; color:var(--color-error);">기사를 불러올 수 없습니다.</div>';
+            if (articles.length === 0) {
+                wrapper.classList.add('hidden');
                 return;
             }
             
-            container.innerHTML = data.map((item, index) => `
-                <div class="news-card" onclick="window.open('${item.url}', '_blank')">
-                  <span class="news-num">${index + 1}</span>
-                  <div class="news-content">
-                    <div class="news-title">${item.title}</div>
-                    <div class="news-meta">${item.source} · ${formatNewsTime(item.time)} · ▲${item.score}</div>
-                  </div>
-                </div>
-            `).join('');
+            wrapper.classList.remove('hidden');
+            let html = '';
+            articles.forEach((item, index) => {
+                const timeStr = timeAgo(item.pubDate);
+                const sourceStr = item.source ? `<span class="news-source">${item.source}</span>` : '';
+                const dotStr = (item.source && timeStr) ? ' · ' : '';
+
+                html += `
+                    <div class="news-card" onclick="window.open('${item.link}', '_blank')">
+                        <span class="news-num">${index + 1}</span>
+                        <div class="news-content">
+                            <div class="news-title">${item.title}</div>
+                            <div class="news-meta">
+                                ${sourceStr}${dotStr}<span>${timeStr}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
         }
 
-        function showAddSubForm() {
-            document.getElementById('add-sub-form').classList.remove('hidden');
-            document.getElementById('sub-input').focus();
+        const KR_RSS = 'https://news.google.com/rss/search?q=한국+경제+주식&hl=ko&gl=KR&ceid=KR:ko';
+        const EN_RSS = 'https://news.google.com/rss/search?q=economy+finance+market&hl=en&gl=US&ceid=US:en';
+
+        function loadNews() {
+            Promise.allSettled([fetchNews(KR_RSS), fetchNews(EN_RSS)])
+                .then(([kr, en]) => {
+                    renderSection('국내', kr.value || [], 'kr-news-wrapper', 'kr-news-list');
+                    renderSection('해외', en.value || [], 'en-news-wrapper', 'en-news-list');
+                    document.getElementById('news-updated').innerText = `마지막 갱신: ${new Date().toLocaleTimeString('ko-KR', { hour12: false })}`;
+                });
         }
 
-        function hideAddSubForm() {
-            document.getElementById('add-sub-form').classList.add('hidden');
-            document.getElementById('sub-input').value = '';
-        }
-
-        async function addSubreddit() {
-            const sub = document.getElementById('sub-input').value.trim().replace(/^r\//, '');
-            if (!sub) return;
-            
-            if (!customSubreddits.includes(sub)) {
-                customSubreddits.push(sub);
-                localStorage.setItem('customSubreddits', JSON.stringify(customSubreddits));
-                
-                document.getElementById('article-list').innerHTML = '<div style="padding:20px; color:var(--text-sub);">뉴스를 불러오는 중...</div>';
-                const subData = await fetchReddit(sub);
-                newsData.custom[sub] = subData;
-            }
-            
-            hideAddSubForm();
-            setTab(sub);
-        }
-
-        function deleteSub(e, sub) {
-            e.stopPropagation();
-            customSubreddits = customSubreddits.filter(s => s !== sub);
-            localStorage.setItem('customSubreddits', JSON.stringify(customSubreddits));
-            delete newsData.custom[sub];
-            
-            if (currentTab === sub) {
-                setTab('gl');
-            } else {
-                renderTabs();
-            }
-        }
-
-        renderTabs();
-        loadAllNews();
-        setInterval(loadAllNews, 1800000); 
+        loadNews();
+        setInterval(loadNews, 1800000);
 
     </script>
 </body>
