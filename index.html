@@ -492,7 +492,7 @@
                 <div id="date" class="date">----년 --월 --일 (-)</div>
             </div>
             <div class="weather-scroll-container" id="weather-container">
-            </div>
+                </div>
         </div>
 
         <hr class="separator">
@@ -871,20 +871,7 @@
         updateDashboard();
         setInterval(updateDashboard, 30000);
 
-
         // --- Section 3: Economic News Logic ---
-        const PROXY = 'https://api.allorigins.win/get?url=';
-        const newsSources = {
-            kr: [
-                { name: '한국경제', url: 'https://www.hankyung.com/feed/economy' },
-                { name: '연합뉴스', url: 'https://www.yna.co.kr/rss/economy.xml' }
-            ],
-            gl: [
-                { name: 'Reuters', url: 'https://feeds.reuters.com/reuters/businessNews' },
-                { name: 'BBC', url: 'https://feeds.bbci.co.uk/news/business/rss.xml' }
-            ]
-        };
-
         let newsData = { kr: [], gl: [] };
 
         function formatTimeDiff(pubDate) {
@@ -894,42 +881,86 @@
             else return `${Math.floor(diff/1440)}일 전`;
         }
 
-        function extractCData(text) {
-            if (!text) return "";
-            return text.replace(/^<!\[CDATA\[(.*)\]\]>$/, '$1').trim();
+        function cleanHtml(htmlStr) {
+            if (!htmlStr) return '';
+            const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
+            return doc.body.innerText.trim();
         }
 
-        async function fetchRssSource(source) {
+        async function fetchWithRss2Json(url, sourceName) {
+            const endpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&api_key=public&count=10`;
+            const res = await fetch(endpoint);
+            const data = await res.json();
+            if (data.status !== 'ok') throw new Error('rss2json failed');
+            return data.items.map(item => ({
+                source: sourceName,
+                title: item.title,
+                link: item.link,
+                pubDate: item.pubDate,
+                description: cleanHtml(item.description),
+                timestamp: new Date(item.pubDate).getTime()
+            }));
+        }
+
+        async function fetchWithGNews(type) {
+            const endpoint = type === 'kr'
+                ? 'https://gnews.io/api/v4/search?q=경제&lang=ko&country=kr&max=10&apikey=free'
+                : 'https://gnews.io/api/v4/top-headlines?topic=business&lang=en&max=10&apikey=free';
+            const res = await fetch(endpoint);
+            if (!res.ok) throw new Error('gnews failed');
+            const data = await res.json();
+            if (!data.articles) throw new Error('gnews no articles');
+            return data.articles.map(article => ({
+                source: article.source.name || 'GNews',
+                title: article.title,
+                link: article.url,
+                pubDate: article.publishedAt,
+                description: article.description,
+                timestamp: new Date(article.publishedAt).getTime()
+            }));
+        }
+
+        function getHardcodedLinks(type) {
+            const nowIso = new Date().toISOString();
+            if (type === 'kr') {
+                return [
+                    { source: '바로가기', title: '한국경제 (Hankyung) 바로가기', link: 'https://www.hankyung.com/economy', pubDate: nowIso, description: '공식 웹사이트로 이동합니다.', timestamp: Date.now() },
+                    { source: '바로가기', title: '연합뉴스 경제 바로가기', link: 'https://www.yna.co.kr/economy/index', pubDate: nowIso, description: '공식 웹사이트로 이동합니다.', timestamp: Date.now() }
+                ];
+            } else {
+                return [
+                    { source: '바로가기', title: 'Reuters Business 바로가기', link: 'https://www.reuters.com/business/', pubDate: nowIso, description: 'Go to official website.', timestamp: Date.now() },
+                    { source: '바로가기', title: 'Bloomberg 바로가기', link: 'https://www.bloomberg.com/', pubDate: nowIso, description: 'Go to official website.', timestamp: Date.now() }
+                ];
+            }
+        }
+
+        async function fetchTypeNews(type) {
             try {
-                const res = await fetch(PROXY + encodeURIComponent(source.url));
-                const data = await res.json();
-                const xml = new DOMParser().parseFromString(data.contents, 'text/xml');
-                const items = Array.from(xml.querySelectorAll('item')).slice(0, 5);
-                
-                return items.map(item => ({
-                    source: source.name,
-                    title: extractCData(item.querySelector('title')?.textContent),
-                    link: item.querySelector('link')?.textContent,
-                    pubDate: item.querySelector('pubDate')?.textContent,
-                    description: extractCData(item.querySelector('description')?.textContent),
-                    timestamp: new Date(item.querySelector('pubDate')?.textContent).getTime()
-                }));
+                let results = [];
+                if (type === 'kr') {
+                    const r1 = await fetchWithRss2Json('https://feeds.feedburner.com/yonhapnewseconomy', '연합뉴스');
+                    const r2 = await fetchWithRss2Json('https://www.hankyung.com/feed/economy', '한국경제');
+                    results = [...r1, ...r2];
+                } else {
+                    const r1 = await fetchWithRss2Json('https://feeds.reuters.com/reuters/businessNews', 'Reuters');
+                    const r2 = await fetchWithRss2Json('https://feeds.bbci.co.uk/news/business/rss.xml', 'BBC');
+                    results = [...r1, ...r2];
+                }
+                return results.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
             } catch (e) {
-                console.warn(`[News] ${source.name} fetch failed`);
-                return [];
+                try {
+                    return await fetchWithGNews(type);
+                } catch (e2) {
+                    return getHardcodedLinks(type);
+                }
             }
         }
 
         async function fetchAllNews() {
             try {
-                const krPromises = newsSources.kr.map(src => fetchRssSource(src));
-                const glPromises = newsSources.gl.map(src => fetchRssSource(src));
-
-                const krResults = await Promise.all(krPromises);
-                const glResults = await Promise.all(glPromises);
-
-                newsData.kr = krResults.flat().sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
-                newsData.gl = glResults.flat().sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+                newsData.kr = await fetchTypeNews('kr');
+                newsData.gl = await fetchTypeNews('gl');
 
                 renderNews('kr');
                 renderNews('gl');
@@ -975,14 +1006,11 @@
             document.getElementById('modal-title').innerText = item.title;
             document.getElementById('modal-source').innerText = item.source;
             document.getElementById('modal-time').innerText = formatTimeDiff(item.pubDate);
-            
-            // Remove HTML tags from description if any for cleaner display, or keep as is if safe. 
-            // Usually RSS descriptions contain basic HTML.
             document.getElementById('modal-desc').innerHTML = item.description || '내용이 없습니다.';
             document.getElementById('modal-link').href = item.link;
 
             document.getElementById('news-modal').style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal(e) {
@@ -996,7 +1024,7 @@
         });
 
         fetchAllNews();
-        setInterval(fetchAllNews, 1800000); // 30분마다 갱신
+        setInterval(fetchAllNews, 1800000);
 
     </script>
 </body>
