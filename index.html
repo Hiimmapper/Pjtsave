@@ -298,7 +298,7 @@
             font-size: 1rem;
         }
 
-        /* --- Section 3: Economic News (Claude) --- */
+        /* --- Section 3: Economic News --- */
         .news-header-top {
             display: flex;
             justify-content: flex-end;
@@ -334,8 +334,11 @@
             gap: 15px;
             padding: 15px 20px;
             border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
             transition: background 0.2s;
-            align-items: flex-start;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
         }
 
         .news-card:last-child {
@@ -346,6 +349,10 @@
             background: #1e293b;
         }
 
+        .news-card:hover .news-title, .news-card:hover .news-arrow {
+            color: var(--primary);
+        }
+
         .news-num {
             font-size: 1.2rem;
             font-weight: 800;
@@ -353,20 +360,20 @@
             width: 25px;
             text-align: center;
             flex-shrink: 0;
-            margin-top: 2px;
         }
 
         .news-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 5px;
         }
 
         .news-title {
             font-size: 1.05rem;
             font-weight: 700;
             line-height: 1.4;
+            transition: color 0.2s;
             color: var(--text-main);
         }
 
@@ -380,43 +387,22 @@
             font-weight: 600;
             color: #e2e8f0;
         }
-
-        .news-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 5px;
+        
+        .news-arrow {
+            font-size: 1.2rem;
+            color: var(--text-sub);
+            margin-left: auto;
+            transition: color 0.2s;
         }
 
-        .news-btn {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        .news-btn:hover {
-            background-color: var(--primary);
-            border-color: var(--primary);
+        .loading-blink {
+            animation: blink 1.5s infinite;
         }
-
-        .fallback-card {
-            cursor: pointer;
-            align-items: center;
-        }
-        .fallback-card:hover .news-title {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-
-        .hidden { display: none !important; }
 
     </style>
 </head>
@@ -452,20 +438,20 @@
 
         <div>
             <div class="news-header-top">
-                <div class="update-time" id="news-updated">마지막 갱신: --:--:--</div>
+                <div class="update-time" id="news-updated">마지막 갱신: --:--</div>
             </div>
 
             <div class="news-section">
                 <div class="news-section-header">📰 국내 경제 뉴스</div>
                 <div class="news-list" id="kr-news-list">
-                    <div style="padding:20px; color:var(--text-sub);">📡 뉴스 불러오는 중...</div>
+                    <div style="padding:20px; color:var(--text-sub);" class="loading-blink">📡 뉴스 검색 중...</div>
                 </div>
             </div>
 
             <div class="news-section">
                 <div class="news-section-header">🌐 해외 경제 뉴스</div>
                 <div class="news-list" id="en-news-list">
-                    <div style="padding:20px; color:var(--text-sub);">📡 뉴스 불러오는 중...</div>
+                    <div style="padding:20px; color:var(--text-sub);" class="loading-blink">📡 뉴스 검색 중...</div>
                 </div>
             </div>
         </div>
@@ -791,16 +777,17 @@
         updateDashboard();
         setInterval(updateDashboard, 30000);
 
-        // --- Section 3: Economic News (Claude API) Logic ---
+        // --- Section 3: Economic News (Claude API + Web Search) ---
         
-        const CLAUDE_API_KEY = ''; // TODO: API Key
+        const CLAUDE_API_KEY = ''; 
 
         async function fetchClaudeNews() {
             const krContainer = document.getElementById('kr-news-list');
             const enContainer = document.getElementById('en-news-list');
 
-            krContainer.innerHTML = '<div style="padding:20px; color:var(--text-sub);">📡 뉴스 불러오는 중...</div>';
-            enContainer.innerHTML = '<div style="padding:20px; color:var(--text-sub);">📡 뉴스 불러오는 중...</div>';
+            const loadingHtml = '<div style="padding:20px; color:var(--text-sub);" class="loading-blink">📡 뉴스 검색 중...</div>';
+            krContainer.innerHTML = loadingHtml;
+            enContainer.innerHTML = loadingHtml;
 
             const today = new Date().toLocaleDateString('ko-KR');
 
@@ -815,10 +802,14 @@
                     },
                     body: JSON.stringify({
                         model: 'claude-sonnet-4-6',
-                        max_tokens: 1000,
+                        max_tokens: 2000,
+                        tools: [{
+                            type: 'web_search_20250305',
+                            name: 'web_search'
+                        }],
                         messages: [{
                             role: 'user',
-                            content: `오늘(${today}) 기준 주요 경제 뉴스를 아래 JSON 형식으로 줘.\n설명 없이 JSON만 출력.\n\n{\n  "kr": [\n    {"title": "기사 제목", "source": "언론사명", "summary": "한줄 요약", "keyword": "검색키워드"}\n  ],\n  "en": [\n    {"title": "Article title", "source": "Media name", "summary": "One line summary", "keyword": "search keyword"}\n  ]\n}\n\nkr: 한국 경제/증시/부동산/환율 관련 8개\nen: 글로벌 경제/주식시장/반도체/Fed 관련 8개`
+                            content: `${today} 오늘 한국 주요 경제 뉴스 8개와 해외 주요 경제 뉴스 8개를 검색해서 아래 JSON 형식으로만 답해줘. 설명 없이 JSON만 출력.\n\n{\n  "kr": [\n    {\n      "title": "기사 제목",\n      "url": "기사 실제 URL",\n      "source": "언론사명",\n      "summary": "한줄 요약"\n    }\n  ],\n  "en": [\n    {\n      "title": "Article title",\n      "url": "actual article URL",\n      "source": "Media name",\n      "summary": "One line summary in Korean"\n    }\n  ]\n}`
                         }]
                     })
                 });
@@ -826,23 +817,30 @@
                 if (!response.ok) throw new Error('API Error');
 
                 const data = await response.json();
-                const text = data.content[0].text;
+                const textBlock = data.content.find(b => b.type === 'text');
+                if(!textBlock) throw new Error('No text block found');
+                const raw = textBlock.text.trim();
                 
-                const jsonStr = text.replace(/```json\n?/, '').replace(/```$/, '').trim();
-                const news = JSON.parse(jsonStr);
+                const clean = raw.replace(/```json|```/gi, '').trim();
+                const news = JSON.parse(clean);
 
-                renderKrNews(news.kr || []);
-                renderEnNews(news.en || []);
+                renderNewsCards(news.kr || [], krContainer);
+                renderNewsCards(news.en || [], enContainer);
                 
-                document.getElementById('news-updated').innerText = `마지막 갱신: ${new Date().toLocaleTimeString('ko-KR', { hour12: false })}`;
+                const now = new Date();
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('news-updated').innerText = `마지막 갱신: ${hh}시 ${mm}분`;
 
             } catch (error) {
-                renderFallback(krContainer, enContainer);
+                const errorHtml = '<div style="padding:20px; color:var(--color-error);">잠시 후 다시 시도합니다</div>';
+                krContainer.innerHTML = errorHtml;
+                enContainer.innerHTML = errorHtml;
+                setTimeout(fetchClaudeNews, 300000); 
             }
         }
 
-        function renderKrNews(articles) {
-            const container = document.getElementById('kr-news-list');
+        function renderNewsCards(articles, container) {
             if (articles.length === 0) {
                 container.innerHTML = '<div style="padding:20px; color:var(--text-sub);">데이터가 없습니다.</div>';
                 return;
@@ -851,65 +849,21 @@
             let html = '';
             articles.forEach((item, index) => {
                 html += `
-                    <div class="news-card">
+                    <div class="news-card" onclick="window.open('${item.url}', '_blank')">
                         <span class="news-num">${index + 1}</span>
                         <div class="news-content">
                             <div class="news-title">${item.title}</div>
                             <div class="news-meta"><span class="news-source">${item.source}</span> · ${item.summary}</div>
-                            <div class="news-actions">
-                                <button class="news-btn" onclick="window.open('https://search.naver.com/search.naver?query=${encodeURIComponent(item.keyword)}', '_blank')">🔍 검색</button>
-                                <button class="news-btn" onclick="window.open('https://news.naver.com/search/result.naver?query=${encodeURIComponent(item.keyword)}', '_blank')">📰 뉴스</button>
-                            </div>
                         </div>
+                        <span class="news-arrow">↗</span>
                     </div>
                 `;
             });
             container.innerHTML = html;
-        }
-
-        function renderEnNews(articles) {
-            const container = document.getElementById('en-news-list');
-            if (articles.length === 0) {
-                container.innerHTML = '<div style="padding:20px; color:var(--text-sub);">데이터가 없습니다.</div>';
-                return;
-            }
-
-            let html = '';
-            articles.forEach((item, index) => {
-                html += `
-                    <div class="news-card">
-                        <span class="news-num">${index + 1}</span>
-                        <div class="news-content">
-                            <div class="news-title">${item.title}</div>
-                            <div class="news-meta"><span class="news-source">${item.source}</span> · ${item.summary}</div>
-                            <div class="news-actions">
-                                <button class="news-btn" onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(item.keyword)}&tbm=nws', '_blank')">🔍 Search</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        function renderFallback(krContainer, enContainer) {
-            const fallbackHtml = `
-                <div class="news-card fallback-card" onclick="window.open('https://www.hankyung.com/economy', '_blank')">
-                    <div class="news-content"><div class="news-title">🔍 한국경제 바로가기</div></div>
-                </div>
-                <div class="news-card fallback-card" onclick="window.open('https://www.yna.co.kr/economy/index', '_blank')">
-                    <div class="news-content"><div class="news-title">🔍 연합뉴스 경제 바로가기</div></div>
-                </div>
-                <div class="news-card fallback-card" onclick="window.open('https://www.reuters.com/business/', '_blank')">
-                    <div class="news-content"><div class="news-title">🔍 Reuters Business 바로가기</div></div>
-                </div>
-            `;
-            krContainer.innerHTML = fallbackHtml;
-            enContainer.innerHTML = '<div style="padding:20px; color:var(--text-sub);">불러오기 실패.</div>';
         }
 
         fetchClaudeNews();
-        setInterval(fetchClaudeNews, 3600000); 
+        setInterval(fetchClaudeNews, 3600000);
 
     </script>
 </body>
