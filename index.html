@@ -16,8 +16,6 @@
             --color-down-us: #ef4444;
             --color-error: #f59e0b;
             --border-color: #2a2a4a;
-            --warn-bg: rgba(255, 200, 0, 0.15);
-            --warn-high: #ef4444;
         }
 
         body {
@@ -137,18 +135,16 @@
         .weather-warning {
             margin-top: 10px;
             padding: 12px;
-            background-color: var(--warn-bg);
             border-radius: 8px;
             font-size: 0.9rem;
             line-height: 1.4;
-            color: #facc15;
-            font-weight: 500;
+            font-weight: 600;
+            text-align: center;
         }
 
-        .prob-high {
-            color: var(--warn-high);
-            font-weight: 800;
-        }
+        .prob-safe { background-color: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .prob-warn { background-color: rgba(250, 204, 21, 0.15); color: #facc15; }
+        .prob-danger { background-color: rgba(239, 68, 68, 0.15); color: #f87171; }
 
         .add-location-card {
             background-color: transparent;
@@ -281,6 +277,12 @@
             gap: 5px;
         }
 
+        .up-kr { color: var(--color-up-kr); }
+        .down-kr { color: var(--color-down-kr); }
+        .up-us { color: var(--color-up-us); }
+        .down-us { color: var(--color-down-us); }
+        .neutral { color: var(--text-main); }
+
         .error-text {
             color: var(--color-error);
             font-size: 0.9rem;
@@ -349,9 +351,8 @@
             return { icon: '🌡️', text: '기타' };
         }
 
-        function formatHour(isoString) {
-            const date = new Date(isoString);
-            let h = date.getHours();
+        function formatHourSimple(dateObj) {
+            let h = dateObj.getHours();
             const ampm = h >= 12 ? '오후' : '오전';
             h = h % 12 || 12;
             return `${ampm} ${h}시`;
@@ -400,23 +401,55 @@
                 const current = data.current;
                 const wInfo = parseWeatherCode(current.weathercode);
                 
-                // 강수 확률 계산
                 const currentHourStart = new Date();
-                currentHourStart.setMinutes(0, 0, 0);
-                
-                let warnings = [];
+                currentHourStart.setMinutes(0, 0, 0, 0);
+                const endOfDay = new Date();
+                endOfDay.setHours(23, 59, 59, 999);
+
+                let blocks = [];
+                let currentBlock = null;
+
                 for (let i = 0; i < data.hourly.time.length; i++) {
                     const time = new Date(data.hourly.time[i]);
+                    if (time < currentHourStart || time > endOfDay) continue;
+
                     const prob = data.hourly.precipitation_probability[i];
-                    if (time >= currentHourStart && prob >= 40) {
-                        const probText = prob >= 70 ? `<span class="prob-high">${prob}%</span>` : `${prob}%`;
-                        warnings.push(`${formatHour(data.hourly.time[i])} ${probText}`);
+
+                    if (prob >= 40) {
+                        if (!currentBlock) {
+                            currentBlock = { start: time, end: time, maxProb: prob };
+                        } else {
+                            currentBlock.end = time;
+                            currentBlock.maxProb = Math.max(currentBlock.maxProb, prob);
+                        }
+                    } else {
+                        if (currentBlock) {
+                            blocks.push(currentBlock);
+                            currentBlock = null;
+                        }
                     }
                 }
+                if (currentBlock) blocks.push(currentBlock);
 
                 let warningHtml = '';
-                if (warnings.length > 0) {
-                    warningHtml = `<div class="weather-warning">🌧️ ${warnings.join(' · ')}</div>`;
+                const currentProbIndex = data.hourly.time.findIndex(t => new Date(t).getTime() === currentHourStart.getTime());
+                const currentProb = currentProbIndex !== -1 ? data.hourly.precipitation_probability[currentProbIndex] : 0;
+
+                if (currentProb >= 40) {
+                    warningHtml = `<div class="weather-warning prob-danger">🌧️ 현재 비 오는 중 (우산 챙기세요)</div>`;
+                } else if (blocks.length === 0) {
+                    warningHtml = `<div class="weather-warning prob-safe">✅ 오늘 비 소식 없음 (우산 불필요)</div>`;
+                } else {
+                    let highestBlock = blocks.reduce((prev, curr) => (prev.maxProb > curr.maxProb) ? prev : curr);
+                    const startStr = formatHourSimple(highestBlock.start);
+                    const endStr = formatHourSimple(highestBlock.end);
+                    const timeRange = startStr === endStr ? startStr : `${startStr}~${endStr}`;
+
+                    if (highestBlock.maxProb >= 70) {
+                        warningHtml = `<div class="weather-warning prob-danger">🌧️ ${timeRange} 강한 비 예상 (우산 필수!)</div>`;
+                    } else {
+                        warningHtml = `<div class="weather-warning prob-warn">☔ ${timeRange} 비 가능성 있음 (우산 챙기세요)</div>`;
+                    }
                 }
 
                 let deleteBtnHtml = index !== null ? `<button class="delete-btn" onclick="removeLocation(${index})">✕</button>` : '';
@@ -511,7 +544,6 @@
 
         renderWeatherCards();
         setInterval(renderWeatherCards, 600000);
-
 
         // --- Section 2: Financial Dashboard Logic ---
         const formatter = new Intl.NumberFormat('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
